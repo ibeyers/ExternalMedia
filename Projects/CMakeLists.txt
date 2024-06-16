@@ -53,37 +53,63 @@ option(FLUIDPROP "Include the FluidProp library for fluid properties" OFF)
 #       INCLUDE COOLPROP              #
 #######################################
 
+# if(COOLPROP)
+  # # Get the CoolProp code
+  # set(COOLPROP_SOURCES "${CMAKE_BINARY_DIR}/CoolProp.sources")
+  # #file(REMOVE_RECURSE "${COOLPROP_SOURCES}")
+  # if(EXISTS "${COOLPROP_SOURCES}")
+    # message(STATUS "Using existing CoolProp sources from ${COOLPROP_SOURCES}")
+  # else()
+    # message(STATUS "Updating CoolProp sources in ${COOLPROP_SOURCES}")
+    # set(COOLPROP_SOURCES_GIT "${CMAKE_CURRENT_SOURCE_DIR}/../externals/CoolProp.git")
+    # if(EXISTS "${COOLPROP_SOURCES_GIT}")
+      # message(STATUS "Using existing CoolProp sources from ${COOLPROP_SOURCES_GIT}")
+      # #file(COPY "${COOLPROP_SOURCES_GIT}" DESTINATION "${COOLPROP_SOURCES}")
+      # execute_process(
+        # COMMAND ${CMAKE_COMMAND} -E copy_directory "${COOLPROP_SOURCES_GIT}" "${COOLPROP_SOURCES}"
+      # )
+    # else()
+      # message(STATUS "Downloading CoolProp sources from the released archive")
+      # file(DOWNLOAD https://sourceforge.net/projects/coolprop/files/CoolProp/6.5.0/source/CoolProp_sources.zip/download "${CMAKE_BINARY_DIR}/coolprop.zip")
+      # #file(DOWNLOAD https://sourceforge.net/projects/coolprop/files/CoolProp/nightly/source/CoolProp_sources.zip/download "${CMAKE_BINARY_DIR}/coolprop.zip")
+      # # Unpack the sources for CoolProp
+      # if(${CMAKE_VERSION} VERSION_LESS "3.18") 
+        # execute_process(
+          # COMMAND ${CMAKE_COMMAND} -E tar xjf "${CMAKE_BINARY_DIR}/coolprop.zip"
+          # WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+        # )
+      # else()
+        # file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/coolprop.zip)
+      # endif()
+      # file(RENAME "${CMAKE_BINARY_DIR}/source" "${COOLPROP_SOURCES}")
+    # endif()
+  # endif()
+  
+# install coolprop from custom local repo
 if(COOLPROP)
   # Get the CoolProp code
   set(COOLPROP_SOURCES "${CMAKE_BINARY_DIR}/CoolProp.sources")
-  #file(REMOVE_RECURSE "${COOLPROP_SOURCES}")
+  
   if(EXISTS "${COOLPROP_SOURCES}")
     message(STATUS "Using existing CoolProp sources from ${COOLPROP_SOURCES}")
   else()
     message(STATUS "Updating CoolProp sources in ${COOLPROP_SOURCES}")
-    set(COOLPROP_SOURCES_GIT "${CMAKE_CURRENT_SOURCE_DIR}/../externals/CoolProp.git")
-    if(EXISTS "${COOLPROP_SOURCES_GIT}")
-      message(STATUS "Using existing CoolProp sources from ${COOLPROP_SOURCES_GIT}")
-      #file(COPY "${COOLPROP_SOURCES_GIT}" DESTINATION "${COOLPROP_SOURCES}")
+
+    # Set your custom local CoolProp repository directory here (highest level of the repo)
+    set(COOLPROP_LOCAL_REPO "C:/Users/temp_IB/coolprop_tests/CoolProp")
+
+    if(EXISTS "${COOLPROP_LOCAL_REPO}")
+      message(STATUS "Using existing CoolProp sources from ${COOLPROP_LOCAL_REPO}")
       execute_process(
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${COOLPROP_SOURCES_GIT}" "${COOLPROP_SOURCES}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${COOLPROP_LOCAL_REPO}" "${COOLPROP_SOURCES}"
       )
     else()
-      message(STATUS "Downloading CoolProp sources from the released archive")
-      file(DOWNLOAD https://sourceforge.net/projects/coolprop/files/CoolProp/6.5.0/source/CoolProp_sources.zip/download "${CMAKE_BINARY_DIR}/coolprop.zip")
-      #file(DOWNLOAD https://sourceforge.net/projects/coolprop/files/CoolProp/nightly/source/CoolProp_sources.zip/download "${CMAKE_BINARY_DIR}/coolprop.zip")
-      # Unpack the sources for CoolProp
-      if(${CMAKE_VERSION} VERSION_LESS "3.18") 
-        execute_process(
-          COMMAND ${CMAKE_COMMAND} -E tar xjf "${CMAKE_BINARY_DIR}/coolprop.zip"
-          WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-        )
-      else()
-        file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/coolprop.zip)
-      endif()
-      file(RENAME "${CMAKE_BINARY_DIR}/source" "${COOLPROP_SOURCES}")
+      message(FATAL_ERROR "Local CoolProp repository not found at ${COOLPROP_LOCAL_REPO}")
     endif()
   endif()
+
+# custom until here
+
   # Prepare the CoolProp build, "${COOLPROP_SOURCES}" is ready now
   file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/CoolProp")
   # Configure CMake switches for CoolProp
