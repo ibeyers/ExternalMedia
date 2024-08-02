@@ -87,7 +87,7 @@ partial package IncompressibleCoolPropMedium
     extends Modelica.Icons.Function;
     input AbsolutePressure p "pressure";
     input SpecificEnthalpy h "specific enthalpy";
-    input MassFraction X[nX] "Mass fractions";
+    input MassFraction X[:] "Mass fractions";
     input Integer phase = 1 "2 for two-phase, 1 for one-phase, 0 if not known";
     output ThermodynamicState state;
   protected
