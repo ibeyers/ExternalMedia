@@ -1,6 +1,6 @@
-within ExternalMedia.Carnot_Battery_Models.FullModels;
+within ExternalMedia.Carnot_Battery_Models.PartialModels;
 
-model Working_flat_tryHEX
+model Working_flat
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -11,19 +11,21 @@ model Working_flat_tryHEX
   package NaK "NaK properties from CoolProp"
     extends ExternalMedia.Media.IncompressibleCoolPropMedium(mediumName = "NaK", substanceNames = {"NaK"});
   end NaK;
+
   replaceable package HotTESLiquid = NaK constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";
   /*
-  package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph);
- */
-   package WorkingFluid = Modelica.Media.Air.ReferenceAir.Air_pT;
+    package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph);
+   */
+  package WorkingFluid = Modelica.Media.Air.ReferenceAir.Air_pT;
+
   package Methanol "NaK properties from CoolProp"
     extends ExternalMedia.Media.IncompressibleCoolPropMedium(mediumName = "MMA", substanceNames = {"MMA[0.6]"});
   end Methanol;
-  replaceable package ColdTESLiquid = Methanol constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";  
-  
+
+  replaceable package ColdTESLiquid = Methanol constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";
   //--------------------------PARAMETERS & VARIABLES-----------------------------//
   //ambient
-  parameter SI.Pressure p_amb = 101325;  
+  parameter SI.Pressure p_amb = 101325;
   //geometry for both solar salt tanks
   parameter SI.Diameter D_tank_solsalt = 37.34;
   parameter SI.Height h_tank_solsalt = 12.44;
@@ -41,7 +43,7 @@ model Working_flat_tryHEX
   parameter SI.Thickness d_insulation_tank_coldliq = 0.4 "thickness of insulation wall layer";
   parameter SI.Radius r_tank_coldliq = D_tank_coldliq/2 "radius at start of insulation";
   parameter SI.Radius r_outer_coldliq = D_tank_coldliq/2 + d_insulation_tank_coldliq "outer radius";
-  parameter SI.Area A_W_tank_coldliq = (pi*D_tank_coldliq*h_tank_coldliq) + A_cross_tank_coldliq*2 "Total Surface Wall";  
+  parameter SI.Area A_W_tank_coldliq = (pi*D_tank_coldliq*h_tank_coldliq) + A_cross_tank_coldliq*2 "Total Surface Wall";
   //--------------------------TANK 1
   SI.HeatFlowRate Q_dot_to_amb_tank1(displayUnit = "kW") "Heat Flow to ambient";
   Real Q_div_A_tank1;
@@ -68,7 +70,8 @@ model Working_flat_tryHEX
   //outflow
   SI.MassFlowRate m_out_tank1;
   parameter SI.MassFlowRate m_in_tank1 = 0;
-  parameter SI.SpecificEnthalpy h_in_tank1 = 1; //dummy value TO_DO
+  parameter SI.SpecificEnthalpy h_in_tank1 = 1;
+  //dummy value TO_DO
   SI.HeatFlowRate Q_port_tank1(displayUnit = "MW") "Heat Flow from tank 2";
   parameter SI.Height x_min_tank1 = 0.4;
   //--------------------------TANK 2
@@ -108,17 +111,17 @@ model Working_flat_tryHEX
   //--------------------------TANK 3
   //nominal
   parameter SI.Temperature T_nom_tank3 = from_degC(25);
-  parameter SI.Pressure p_nom_tank3 = p_amb "unpressurized tank";  
-  parameter SI.Mass m_nom_tank3 = 13116801.563929563;  
+  parameter SI.Pressure p_nom_tank3 = p_amb "unpressurized tank";
+  parameter SI.Mass m_nom_tank3 = 13116801.563929563;
   ColdTESLiquid.ThermodynamicState coldliq_tank3_nom(p(start = p_nom_tank3), T(start = T_nom_tank3)) "Nominal thermodynamic state";
   //start values
-  parameter SI.Temperature T_start_tank3 = from_degC(23); 
-  parameter SI.Mass m_start_tank3 = x_min_tank3*rho_start_tank3*A_cross_tank_coldliq;  
-  parameter SI.Density rho_start_tank3 = 890.69;  
+  parameter SI.Temperature T_start_tank3 = from_degC(23);
+  parameter SI.Mass m_start_tank3 = x_min_tank3*rho_start_tank3*A_cross_tank_coldliq;
+  parameter SI.Density rho_start_tank3 = 890.69;
   //actual
-  SI.Temperature T_tank3(start = T_start_tank3); 
-  SI.Temperature T_in_tank3(start = T_start_tank3); 
-  ColdTESLiquid.ThermodynamicState coldliq_tank3_state(p(start = p_nom_tank3), T(start = T_nom_tank3)) "Nominal thermodynamic state";   
+  SI.Temperature T_tank3(start = T_start_tank3);
+  SI.Temperature T_in_tank3(start = T_start_tank3);
+  ColdTESLiquid.ThermodynamicState coldliq_tank3_state(p(start = p_nom_tank3), T(start = T_nom_tank3)) "Nominal thermodynamic state";
   SI.HeatFlowRate Q_dot_to_amb_tank3(displayUnit = "kW") "Heat Flow to ambient";
   Real Q_div_A_tank3;
   //state variables
@@ -128,9 +131,10 @@ model Working_flat_tryHEX
   ColdTESLiquid.BaseProperties coldliq_tank3_base "Base Medium properties tank 3";
   SI.PathLength x_tank3 "cold liquid level";
   //port
-  parameter SI.MassFlowRate m_out_tank3=0;
+  parameter SI.MassFlowRate m_out_tank3 = 0;
   SI.MassFlowRate m_in_tank3;
-  parameter SI.SpecificEnthalpy h_in_tank3 = 16974; //dummy value TO_DO
+  parameter SI.SpecificEnthalpy h_in_tank3 = 16974;
+  //dummy value TO_DO
   //SI.HeatFlowRate Q_port_tank1(displayUnit = "MW") "Heat Flow from tank 2";
   parameter SI.Height x_min_tank3 = 0.4;
   //--------------------------TANK 4
@@ -141,30 +145,32 @@ model Working_flat_tryHEX
   //SI.Energy Energy_nom_tank4(displayUnit = "MWh");
   parameter SI.Mass m_nom_tank4 = V_tank_coldliq*rho_start_tank4;
   //start values
-  parameter SI.Temperature T_start_tank4 = from_degC(-60); 
+  parameter SI.Temperature T_start_tank4 = from_degC(-60);
   parameter SI.Mass m_start_tank4 = m_nom_tank4;
-  parameter SI.Density rho_start_tank4 = 900;  
+  parameter SI.Density rho_start_tank4 = 900;
   //actual
-  SI.Temperature T_tank4(start = T_start_tank4);  
-  ColdTESLiquid.ThermodynamicState coldliq_tank4_state(p(start = p_nom_tank4), T(start = T_nom_tank4)) "Nominal thermodynamic state";        
+  SI.Temperature T_tank4(start = T_start_tank4);
+  ColdTESLiquid.ThermodynamicState coldliq_tank4_state(p(start = p_nom_tank4), T(start = T_nom_tank4)) "Nominal thermodynamic state";
   SI.HeatFlowRate Q_dot_to_amb_tank4(displayUnit = "kW") "Heat Flow to ambient";
-  Real Q_div_A_tank4;  
+  Real Q_div_A_tank4;
   //state variables
   SI.Mass m_tank4(start = m_nom_tank4);
   Real SOC_tank4;
- // Real SOE_tank4;
+  // Real SOE_tank4;
   ColdTESLiquid.BaseProperties coldliq_tank4_base "Base Medium properties tank 4";
   //other
- // SI.Energy Energy_content_tank1(displayUnit = "MWh");
+  // SI.Energy Energy_content_tank1(displayUnit = "MWh");
   SI.PathLength x_tank4 "salt-level";
   //outflow
   SI.MassFlowRate m_out_tank4;
   parameter SI.MassFlowRate m_in_tank4 = 0;
-  parameter SI.SpecificEnthalpy h_in_tank4 = 1; //dummy value TO_DO
+  parameter SI.SpecificEnthalpy h_in_tank4 = 1;
+  //dummy value TO_DO
   //SI.HeatFlowRate Q_port_tank4(displayUnit = "MW") "Heat Flow from tank 2";
   parameter SI.Height x_min_tank4 = 0.4;
   //-------------ALL HEX//
-  parameter Real f_p = 0.01625;  //pressure loss factor
+  parameter Real f_p = 0.01625;
+  //pressure loss factor
   //-------------HEX HOT//
   parameter Real UA_HEX_Hot = 17456614;
   Real C_WF_HEX_Hot "Heat capacity rate of cold side of hot HEX";
@@ -176,21 +182,21 @@ model Working_flat_tryHEX
   //-------------HEX RECUP//
   parameter Real UA_HEX_recup = 25443162;
   Real C_4_HEX_recup "Heat capacity rate of hot side of recuperation HEX (after turbine)";
-  Real C_2_HEX_recup "Heat capacity rate of cold side of recuperation HEX (after compressor)";  
+  Real C_2_HEX_recup "Heat capacity rate of cold side of recuperation HEX (after compressor)";
   Real C_min_HEX_recup;
   Real NTU_HEX_recup "Number of transfer units of recuperation HEX";
-  Real eff_HEX_recup  "effectiveness of hot HEX";
+  Real eff_HEX_recup "effectiveness of hot HEX";
   Real C_max_HEX_recup;
   //-------------HEAT REJECTION//
   SI.HeatFlowRate Q_4_a_1_a "heat flow rate rejected to district heating or such";
   //-------------HEX COLD//
   parameter Real UA_HEX_Cold = 9500395;
   Real C_T_1_a_HEX_Cold "Heat capacity rate of hot side of cold HEX (coming from heat rejection)";
-  Real C_tank4_HEX_Cold "Heat capacity rate of cold side of cold HEX (coming from cold tank 4)";  
+  Real C_tank4_HEX_Cold "Heat capacity rate of cold side of cold HEX (coming from cold tank 4)";
   Real NTU_HEX_Cold "Number of transfer units of cold HEX";
   Real eff_HEX_Cold "effectiveness of cold HEX";
   SI.MassFlowRate m_coldliq_HEX_Cold "mass flow rate required for balanced HEX";
-  ColdTESLiquid.ThermodynamicState coldliq_HEX_in_tank3(p(start = p_nom_tank3), T(start = T_nom_tank3)) " thermodynamic state";   
+  ColdTESLiquid.ThermodynamicState coldliq_HEX_in_tank3(p(start = p_nom_tank3), T(start = T_nom_tank3)) " thermodynamic state";
   //SI.Temperature T_1_;
   //-------------COMPRESSOR//
   parameter Real k = 1.4 "isentropic expansion factor";
@@ -226,7 +232,7 @@ model Working_flat_tryHEX
   //reduced
   Real beta_TU_red(start = 1) "reduced expansion ratio";
   Real n_TU_red(start = 1) "reduced speed";
-  SI.Efficiency eta_is_TU_red "reduced isentropic turbine efficiency";  
+  SI.Efficiency eta_is_TU_red "reduced isentropic turbine efficiency";
   //-------------STATES//
   // INITIAL
   parameter SI.Pressure p_1_initial = 100000 "fixed pressure point";
@@ -235,19 +241,17 @@ model Working_flat_tryHEX
   parameter SI.SpecificEnthalpy h_1_initial = -53000;
   parameter SI.SpecificEntropy s_1_initial = -50;
   WorkingFluid.ThermodynamicState state_initial "thermodynamic state initially";
-  parameter SI.Temperature T_3_a_initial =  from_degC(263.38);
-  parameter SI.Temperature T_4_a_initial =  from_degC(121.64);  
-  parameter SI.Temperature T_4_initial =  from_degC(272);
-  parameter SI.Pressure p_4_initial =105039;
- parameter SI.Pressure  p_4_a_initial = 103276;
-  parameter WorkingFluid.ThermodynamicState state_4_initial(p=p_4_initial, T=T_4_initial) "thermodynamic state of turbine outlet";
-  
-
-  SI.Temperature T_1(start = from_degC(-52.760)) "ambient temperature";
-  SI.Pressure p_1(start = 100000 ) "ambient pressure";
+  parameter SI.Temperature T_3_a_initial = from_degC(263.38);
+  parameter SI.Temperature T_4_a_initial = from_degC(121.64);
+  parameter SI.Temperature T_4_initial = from_degC(272);
+  parameter SI.Pressure p_4_initial = 105039;
+  parameter SI.Pressure p_4_a_initial = 103276;
+  parameter WorkingFluid.ThermodynamicState state_4_initial(p = p_4_initial, T = T_4_initial) "thermodynamic state of turbine outlet";
+  SI.Temperature T_1(start = T_1_initial) "ambient temperature";
+  SI.Pressure p_1(start = p_1_initial) "ambient pressure";
   WorkingFluid.ThermodynamicState state_1 "thermodynamic state of inlet";
-  WorkingFluid.SpecificEnthalpy h_1(start = -53000) "inlet enthalpy";
-  WorkingFluid.SpecificEntropy s_1(start = -50) "inlet spec. entropy";
+  WorkingFluid.SpecificEnthalpy h_1(start = h_1_initial) "inlet enthalpy";
+  WorkingFluid.SpecificEntropy s_1(start = s_1_initial) "inlet spec. entropy";
   //STATE 2 isentropic
   SI.Temperature T_2_is(start = from_degC(100)) "isentropic outlet temperature of compressor";
   WorkingFluid.ThermodynamicState state_2_is "thermodynamic state of compressor outlet";
@@ -261,38 +265,37 @@ model Working_flat_tryHEX
   //STATE 3a
   WorkingFluid.ThermodynamicState state_3_a "thermodynamic state of compressor outlet";
   SI.Temperature T_3_a(start = from_degC(260)) "outlet temperature after recuperation";
-    WorkingFluid.SpecificEnthalpy h_3_a(start = 264244) "compressor outlet enthalpy";
+  WorkingFluid.SpecificEnthalpy h_3_a(start = 264244) "compressor outlet enthalpy";
   WorkingFluid.SpecificEntropy s_3_a "compressor outlet spec. entropy";
-    SI.Pressure p_3_a(start = 581494) "Pressure after recup";  
+  SI.Pressure p_3_a(start = 581494) "Pressure after recup";
   //STATE 3
   WorkingFluid.ThermodynamicState state_3 "thermodynamic state of HEX outlet";
-  SI.Temperature T_3(start=from_degC(560)) "outlet temperature after HEX";
+  SI.Temperature T_3(start = from_degC(560)) "outlet temperature after HEX";
   SI.Pressure p_3(start = 572045) "Pressure after HEX";
   WorkingFluid.SpecificEnthalpy h_3(start = 579480) "HEX outlet enthalpy";
   WorkingFluid.SpecificEntropy s_3 "HEX outlet spec. entropy";
-
   //STATE 4 isentropic
-  SI.Temperature T_4_is(start=from_degC(250)) "isentropic outlet temperature of turbine";
+  SI.Temperature T_4_is(start = from_degC(250)) "isentropic outlet temperature of turbine";
   WorkingFluid.ThermodynamicState state_4_is "isentropic state of turbine outlet";
   WorkingFluid.SpecificEntropy s_4_is "isentropic turbine outlet spec. entropy";
   //STATE 4
-  SI.Pressure p_4(start=105039) " pressure at turb outlet";
+  SI.Pressure p_4(start = 105039) " pressure at turb outlet";
   SI.Temperature T_4 "outlet temperature of turbine";
   WorkingFluid.ThermodynamicState state_4 "thermodynamic state of turbine outlet";
   WorkingFluid.SpecificEnthalpy h_4 "turbine outlet enthalpy";
-  WorkingFluid.SpecificEntropy s_4 "turbine outlet spec. entropy";  
+  WorkingFluid.SpecificEntropy s_4 "turbine outlet spec. entropy";
   //STATE 4 a
-  SI.Pressure p_4_a(start=103332)  " pressure at recuperation outlet";
-  SI.Temperature T_4_a(start=from_degC(270)) "outlet temperature after recuperation";
-  WorkingFluid.ThermodynamicState state_4_a(p(start=p_4_initial), T(start=T_4_initial)) "thermodynamic state of turbine-side recuperation outlet";
+  SI.Pressure p_4_a(start = 103332) " pressure at recuperation outlet";
+  SI.Temperature T_4_a(start = from_degC(270)) "outlet temperature after recuperation";
+  WorkingFluid.ThermodynamicState state_4_a(p(start = p_4_initial), T(start = T_4_initial)) "thermodynamic state of turbine-side recuperation outlet";
   WorkingFluid.SpecificEnthalpy h_4_a "turbine-side recuperation outlet enthalpy";
-  WorkingFluid.SpecificEntropy s_4_a "turbine-side recuperation outlet spec. entropy";    
+  WorkingFluid.SpecificEntropy s_4_a "turbine-side recuperation outlet spec. entropy";
   //STATE 1 a
-  SI.Pressure p_1_a  "pressure after Heat rejection ";
+  SI.Pressure p_1_a "pressure after Heat rejection ";
   SI.Temperature T_1_a "outlet temperature after Heat rejection ";
   WorkingFluid.ThermodynamicState state_1_a "thermodynamic state after Heat rejection ";
   WorkingFluid.SpecificEnthalpy h_1_a "turbine-side recuperation after Heat rejection ";
-  WorkingFluid.SpecificEntropy s_1_a "turbine-side recuperation after Heat rejection ";    
+  WorkingFluid.SpecificEntropy s_1_a "turbine-side recuperation after Heat rejection ";
   //-------------CYCLE//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -317,11 +320,11 @@ initial equation
   m_tank1 = m_nom_tank1;
   T_tank1 = T_start_tank1;
   p_1 = p_1_initial;
-    m_tank2 =m_empty_tank2;
+  m_tank2 = m_empty_tank2;
   T_tank2 = T_start_tank2;
   T_tank3 = T_start_tank3;
   T_tank4 = T_start_tank4;
-  m_tank3=m_start_tank3;
+  m_tank3 = m_start_tank3;
 equation
 //-------------TANK 1//
   solsalt_tank1_nom = HotTESLiquid.setState_pT(p_nom_tank1, T_nom_tank1);
@@ -365,9 +368,9 @@ equation
   Q_dot_to_amb_tank2 = -Q_div_A_tank2*x_tank2*pi*D_tank_solsalt;
   Q_port_tank2 = m_in_tank2*h_in_tank2 + m_out_tank2*solsalt_tank2.h;
 //-------------TANK 3//
- coldliq_tank3_nom = ColdTESLiquid.setState_pT(p_nom_tank3, T_nom_tank3);
- coldliq_tank3_state = ColdTESLiquid.setState_pT(p_nom_tank3, T_tank3);
-  //Energy_nom_tank1 = m_nom_tank1*solsalt_tank1_nom.cp*T_nom_tank1;
+  coldliq_tank3_nom = ColdTESLiquid.setState_pT(p_nom_tank3, T_nom_tank3);
+  coldliq_tank3_state = ColdTESLiquid.setState_pT(p_nom_tank3, T_tank3);
+//Energy_nom_tank1 = m_nom_tank1*solsalt_tank1_nom.cp*T_nom_tank1;
 //cold liquid properties
   coldliq_tank3_base.p = p_nom_tank3;
   coldliq_tank3_base.T = T_tank3;
@@ -375,21 +378,21 @@ equation
   m_tank3 = coldliq_tank3_base.d*A_cross_tank_coldliq*x_tank3;
 // get tank level
   SOC_tank3 = m_tank3/m_nom_tank3;
- // SOE_tank1 = Energy_content_tank1/Energy_nom_tank1;
-  //Energy_content_tank1 = m_tank1*solsalt_tank1.u;
+// SOE_tank1 = Energy_content_tank1/Energy_nom_tank1;
+//Energy_content_tank1 = m_tank1*solsalt_tank1.u;
 //mass balance
   der(m_tank3) = m_in_tank3 + m_out_tank3;
 //energy balance
   der(m_tank3*coldliq_tank3_base.u) = m_in_tank3*coldliq_HEX_in_tank3.h + m_out_tank3*coldliq_tank3_base.h + Q_dot_to_amb_tank3;
-  Q_div_A_tank3 = 1; //dummyvalue
+  Q_div_A_tank3 = 1;
+//dummyvalue
   Q_dot_to_amb_tank3 = 0;
-  //Q_port_tank1 = m_in_tank1*h_in_tank1 + m_out_tank1*solsalt_tank1.h;
-  
+//Q_port_tank1 = m_in_tank1*h_in_tank1 + m_out_tank1*solsalt_tank1.h;
 //-------------TANK 4//
- // T_tank4=from_degC(-60);
- coldliq_tank4_nom = ColdTESLiquid.setState_pT(p_nom_tank4, T_nom_tank4);
- coldliq_tank4_state = ColdTESLiquid.setState_pT(p_nom_tank4, T_tank4);
-  //Energy_nom_tank1 = m_nom_tank1*solsalt_tank1_nom.cp*T_nom_tank1;
+// T_tank4=from_degC(-60);
+  coldliq_tank4_nom = ColdTESLiquid.setState_pT(p_nom_tank4, T_nom_tank4);
+  coldliq_tank4_state = ColdTESLiquid.setState_pT(p_nom_tank4, T_tank4);
+//Energy_nom_tank1 = m_nom_tank1*solsalt_tank1_nom.cp*T_nom_tank1;
 //cold liquid properties
   coldliq_tank4_base.p = p_nom_tank4;
   coldliq_tank4_base.T = T_tank4;
@@ -397,58 +400,69 @@ equation
   m_tank4 = coldliq_tank4_base.d*A_cross_tank_coldliq*x_tank4;
 // get tank level
   SOC_tank4 = m_tank4/m_nom_tank4;
- // SOE_tank1 = Energy_content_tank1/Energy_nom_tank1;
-  //Energy_content_tank1 = m_tank1*solsalt_tank1.u;
+// SOE_tank1 = Energy_content_tank1/Energy_nom_tank1;
+//Energy_content_tank1 = m_tank1*solsalt_tank1.u;
 //mass balance
   der(m_tank4) = m_in_tank4 + m_out_tank4;
 //energy balance
   der(m_tank4*coldliq_tank4_base.u) = m_in_tank4*h_in_tank4 + m_out_tank4*coldliq_tank4_base.h + Q_dot_to_amb_tank4;
-  Q_div_A_tank4 = 1; //dummy value
-  Q_dot_to_amb_tank4 =0;
-  //Q_port_tank1 = m_in_tank1*h_in_tank1 + m_out_tank1*solsalt_tank1.h;
+  Q_div_A_tank4 = 1;
+//dummy value
+  Q_dot_to_amb_tank4 = 0;
+//Q_port_tank1 = m_in_tank1*h_in_tank1 + m_out_tank1*solsalt_tank1.h;
 //-------------HEX HOT//
   C_WF_HEX_Hot = m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_3_a);
   C_solsalt_HEX_Hot = C_WF_HEX_Hot;
   m_solsalt_HEX_Hot = C_solsalt_HEX_Hot/solsalt_tank1_state.cp;
   m_out_tank1 + m_solsalt_HEX_Hot = 0;
-  m_solsalt_HEX_Hot=m_in_tank2;
+  m_solsalt_HEX_Hot = m_in_tank2;
   NTU_HEX_Hot = UA_HEX_Hot/C_WF_HEX_Hot;
   eff_HEX_Hot = NTU_HEX_Hot/(1 + NTU_HEX_Hot);
-  eff_HEX_Hot = (T_tank1 - T_in_tank2)/(T_tank1 - T_3_a); //calc T_tank2
-  (T_in_tank2-T_tank1 )=(T_3_a-T_3); //calc T_3 //because C_min=C_max (balanced HEX)
+  eff_HEX_Hot = (T_tank1 - T_in_tank2)/(T_tank1 - T_3_a);
+//calc T_tank2
+  (T_in_tank2 - T_tank1) = (T_3_a - T_3);
+//calc T_3 //because C_min=C_max (balanced HEX)
 //-------------HEX RECUP//
-  C_4_HEX_recup=m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_4); //hotstate_4.cp
-  C_2_HEX_recup=m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_2);  //coldstate_2.cp
-  C_min_HEX_recup=min(C_4_HEX_recup,C_2_HEX_recup);
-  C_max_HEX_recup=max(C_4_HEX_recup,C_2_HEX_recup);
-  NTU_HEX_recup=UA_HEX_recup/C_min_HEX_recup;
-  eff_HEX_recup = NTU_HEX_recup/(1 + NTU_HEX_recup);  
-  eff_HEX_recup =(C_4_HEX_recup/C_min_HEX_recup)* (T_4 - T_4_a)/(T_4 - T_2); //calc T_4_a
-  C_min_HEX_recup/C_max_HEX_recup=(T_3_a- T_2)/(T_4 - T_4_a);
-    solsalt_HEX1_tank2.T = T_in_tank2;
+  C_4_HEX_recup = m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_4);
+//hotstate_4.cp
+  C_2_HEX_recup = m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_2);
+//coldstate_2.cp
+  C_min_HEX_recup = min(C_4_HEX_recup, C_2_HEX_recup);
+  C_max_HEX_recup = max(C_4_HEX_recup, C_2_HEX_recup);
+  NTU_HEX_recup = UA_HEX_recup/C_min_HEX_recup;
+  eff_HEX_recup = NTU_HEX_recup/(1 + NTU_HEX_recup);
+  eff_HEX_recup = (C_4_HEX_recup/C_min_HEX_recup)*(T_4 - T_4_a)/(T_4 - T_2);
+//calc T_4_a
+  C_min_HEX_recup/C_max_HEX_recup = (T_3_a - T_2)/(T_4 - T_4_a);
+  solsalt_HEX1_tank2.T = T_in_tank2;
 //To-Do unneccessary state
   solsalt_HEX1_tank2.p = p_amb;
 //To-Do unneccessary state
   h_in_tank2 = solsalt_HEX1_tank2.h;
-  //-------------HEAT REJECTION//
-  Q_4_a_1_a=m_dot_WF*(h_4_a-h_1_a);
-  T_1_a=T_4_a-89;
+//-------------HEAT REJECTION//
+  Q_4_a_1_a = m_dot_WF*(h_4_a - h_1_a);
+  T_1_a = T_4_a - 89;
 //-------------HEX COLD//
-  C_T_1_a_HEX_Cold =m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_1_a); //state_1_a.cp
-  C_tank4_HEX_Cold=C_T_1_a_HEX_Cold;  //balanced HEX
-  NTU_HEX_Cold=UA_HEX_Cold/C_T_1_a_HEX_Cold;  
-  eff_HEX_Cold = NTU_HEX_Cold/(1 + NTU_HEX_Cold);  
-  eff_HEX_Cold = (T_1_a - T_1)/(T_1_a - T_tank4); //calc T_1_
-  (T_in_tank3-T_tank4 )=(T_1_a-T_1); //calc T_in_tank3 //because C_min=C_max (balanced HEX)
+  C_T_1_a_HEX_Cold = m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_1_a);
+//state_1_a.cp
+  C_tank4_HEX_Cold = C_T_1_a_HEX_Cold;
+//balanced HEX
+  NTU_HEX_Cold = UA_HEX_Cold/C_T_1_a_HEX_Cold;
+  eff_HEX_Cold = NTU_HEX_Cold/(1 + NTU_HEX_Cold);
+  eff_HEX_Cold = (T_1_a - T_1)/(T_1_a - T_tank4);
+//calc T_1_
+  (T_in_tank3 - T_tank4) = (T_1_a - T_1);
+//calc T_in_tank3 //because C_min=C_max (balanced HEX)
   m_coldliq_HEX_Cold = C_T_1_a_HEX_Cold/coldliq_tank4_state.cp;
   m_out_tank4 + m_coldliq_HEX_Cold = 0;
-  m_coldliq_HEX_Cold=m_in_tank3;
-  coldliq_HEX_in_tank3=ColdTESLiquid.setState_pT(p_nom_tank3, T_in_tank3);
+  m_coldliq_HEX_Cold = m_in_tank3;
+  coldliq_HEX_in_tank3 = ColdTESLiquid.setState_pT(p_nom_tank3, T_in_tank3);
 //-------------STATES//
   state_initial = WorkingFluid.setState_pT(p_1_initial, T_1_initial);
 //state 1
-  p_1 = p_1_initial; //fixed pressure point
-  //T_1 = T_1_initial;
+  p_1 = p_1_initial;
+//fixed pressure point
+//T_1 = T_1_initial;
   state_1 = WorkingFluid.setState_pT(p_1, T_1);
   h_1 = WorkingFluid.specificEnthalpy(state_1);
   s_1 = WorkingFluid.specificEntropy(state_1);
@@ -463,10 +477,10 @@ equation
 //state 3a
   p_3_a = p_2*(1 - f_p);
   state_3_a = WorkingFluid.setState_pT(p_2, T_3_a);
-  h_3_a=WorkingFluid.specificEnthalpy(state_3_a);
-  s_3_a=WorkingFluid.specificEntropy(state_3_a);
+  h_3_a = WorkingFluid.specificEnthalpy(state_3_a);
+  s_3_a = WorkingFluid.specificEntropy(state_3_a);
 //state 3
-  state_3= WorkingFluid.setState_pT(p_3,T_3);
+  state_3 = WorkingFluid.setState_pT(p_3, T_3);
   p_3 = p_3_a*(1 - f_p);
   h_3 = state_3.h;
   s_3 = WorkingFluid.specificEntropy(state_3);
@@ -474,23 +488,21 @@ equation
   s_4_is = s_3;
   state_4_is = WorkingFluid.setState_ps(p_4, s_4_is) "isentropic state of turbine outlet";
   T_4_is = state_4_is.T "isentropic turbine outlet spec. entropy";
-  //state 4
+//state 4
   p_4 = p_4_a*(1 + f_p);
   state_4 = WorkingFluid.setState_pT(p_4, T_4);
   h_4 = WorkingFluid.specificEnthalpy(state_4);
   s_4 = WorkingFluid.specificEntropy(state_4);
-  //state 4_a
+//state 4_a
   p_4_a = p_1_a*(1 + f_p);
   state_4_a = WorkingFluid.setState_pT(p_4_a, T_4_a);
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
-  //state 1_a
+//state 1_a
   p_1_a = p_1*(1 + f_p);
   state_1_a = WorkingFluid.setState_pT(p_1_a, T_1_a);
   h_1_a = WorkingFluid.specificEnthalpy(state_1_a);
   s_1_a = WorkingFluid.specificEntropy(state_1_a);
-    
-  
 //-------------COMPRESSOR//
 //reduced values compressor
   eta_is_CO_red = eta_is_CO/eta_is_CO_nom;
@@ -517,18 +529,17 @@ equation
   G_TU_red = alpha*sqrt(T_3_nom/T_3)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
   eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
   eta_is_TU = (T_3 - T_4)/(T_3 - T_4_is);
-  P_34 = m_dot_WF*(h_3 - h_4);  //-------------CYCLE//
-    P_shaft = P_34 - P_12;
+  P_34 = m_dot_WF*(h_3 - h_4);
+//-------------CYCLE//
+  P_shaft = P_34 - P_12;
   eta_cycle = P_shaft/Q_dot_3a3;
-  Q_dot_3a3=m_dot_WF*(h_3-h_3_a);
+  Q_dot_3a3 = m_dot_WF*(h_3 - h_3_a);
   back_work_ratio = P_12/P_34;
   work_ratio = P_34/P_12;
-  //work_per_unit_mass = P_shaft/(10^6)/m_dot_WF;
+//work_per_unit_mass = P_shaft/(10^6)/m_dot_WF;
   der(E_dis) = P_shaft;
-  
 //--------------------------COMPONENT MANAGEMENT--------------------------//
   if x_tank1 < x_min_tank1 then
     terminate("Minimum fill level of tank reached");
   end if;
-
-end Working_flat_tryHEX;
+end Working_flat;

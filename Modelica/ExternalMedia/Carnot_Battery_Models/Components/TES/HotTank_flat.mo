@@ -59,6 +59,7 @@ initial equation
   T_tank1 = T_start_tank1;  
 equation
 //-------------TANK 1//
+m_out_tank1=-100;
   solsalt_tank1_nom = HotTESLiquid.setState_pT(p_nom_tank1, T_nom_tank1);
   solsalt_tank1_state = HotTESLiquid.setState_pT(p_nom_tank1, T_tank1);
   Energy_nom_tank1 = m_nom_tank1*solsalt_tank1_nom.cp*T_nom_tank1;

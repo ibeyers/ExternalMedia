@@ -1,6 +1,6 @@
-within ExternalMedia.Carnot_Battery_Models.FullModels;
+within ExternalMedia.Carnot_Battery_Models.PartialModels;
 
-model Working_flat
+model Working_flat_tryHEX
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -243,11 +243,11 @@ model Working_flat
   parameter WorkingFluid.ThermodynamicState state_4_initial(p=p_4_initial, T=T_4_initial) "thermodynamic state of turbine outlet";
   
 
-  SI.Temperature T_1(start = T_1_initial) "ambient temperature";
-  SI.Pressure p_1(start = p_1_initial) "ambient pressure";
+  SI.Temperature T_1(start = from_degC(-52.760)) "ambient temperature";
+  SI.Pressure p_1(start = 100000 ) "ambient pressure";
   WorkingFluid.ThermodynamicState state_1 "thermodynamic state of inlet";
-  WorkingFluid.SpecificEnthalpy h_1(start = h_1_initial) "inlet enthalpy";
-  WorkingFluid.SpecificEntropy s_1(start = s_1_initial) "inlet spec. entropy";
+  WorkingFluid.SpecificEnthalpy h_1(start = -53000) "inlet enthalpy";
+  WorkingFluid.SpecificEntropy s_1(start = -50) "inlet spec. entropy";
   //STATE 2 isentropic
   SI.Temperature T_2_is(start = from_degC(100)) "isentropic outlet temperature of compressor";
   WorkingFluid.ThermodynamicState state_2_is "thermodynamic state of compressor outlet";
@@ -531,4 +531,4 @@ equation
     terminate("Minimum fill level of tank reached");
   end if;
 
-end Working_flat;
+end Working_flat_tryHEX;

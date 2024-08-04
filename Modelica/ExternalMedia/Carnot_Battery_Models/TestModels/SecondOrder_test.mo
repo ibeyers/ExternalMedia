@@ -1,6 +1,6 @@
-within ExternalMedia.Carnot_Battery_Models.PartialModels;
+within ExternalMedia.Carnot_Battery_Models.TestModels;
 
-model PID_test
+model SecondOrder_test
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -37,16 +37,15 @@ SI.Pressure p_3_a_charge(start = 456931) "Pressure after HEX";
     WorkingFluid.ThermodynamicState state_3_a_charge_guess(p(start=456931),T(start=from_degC(281.29)));
     WorkingFluid.SpecificEnthalpy h_3_a_charge_guess(start=1006139) "enthalpy";
     WorkingFluid.SpecificEntropy s_3_a_charge_guess(start=4545) "spec. entropy";
-  Modelica.Blocks.Continuous.PID T3_PID(Ti = 10, Td = 1, initType = Modelica.Blocks.Types.Init.NoInit, y(start=from_degC(281.29)), u(start=from_degC(281.29)), Nd = 10, k = 1)  annotation(
-    Placement(transformation(origin = {2, 4}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Continuous.SecondOrder secondOrder(w = 0.5, D = 0.4)  annotation(
+    Placement(transformation(origin = {2, -4}, extent = {{-10, -10}, {10, 10}})));
 initial equation
-T_3_a_charge =from_degC(281.29);
-T_3_a_charge_guess=from_degC(282.29);
+T_3_a_charge_guess=from_degC(281.29);
 equation
  T_3_a_charge =from_degC(281.29)-0.06944444444444445 * time;
 p_3_a_charge=456931-6.944444444444445 * time;
-T_3_a_charge_guess=T3_PID.y;
-T_3_a_charge=T3_PID.u;
+T_3_a_charge_guess=secondOrder.y;
+T_3_a_charge=secondOrder.u;
 p_3_a_charge_guess=456931;
 //STATE 3 a charge GUESS
   state_3_a_charge_guess = WorkingFluid.setState_pT(p_3_a_charge_guess, T_3_a_charge_guess);
@@ -58,4 +57,4 @@ p_3_a_charge_guess=456931;
   h_3_a_charge = WorkingFluid.specificEnthalpy(state_3_a_charge);
   s_3_a_charge = WorkingFluid.specificEntropy(state_3_a_charge);
     
-end PID_test;
+end SecondOrder_test;
