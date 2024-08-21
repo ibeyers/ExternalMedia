@@ -20,7 +20,7 @@ model NaK
     Medium.ThermodynamicState FluidState "Thermodynamic state of TES fluid"; 
  
    parameter Pressure p = from_bar(1) "TES fluid pressure";
-   parameter Temperature T = from_degC(260) "TES fluid temperature";
+   parameter Temperature T = from_degC(259) "TES fluid temperature";
    Density d "density of TES fluid";   
    Medium.BaseProperties medium_a "Medium properties of port_a"; 
    Density d_basep;

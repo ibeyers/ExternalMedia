@@ -1,6 +1,6 @@
-within ExternalMedia.Carnot_Battery_Models.FullModels;
+within ExternalMedia.Carnot_Battery_Models.Graveyard;
 
-model DynamicMalta_charge_discharge
+model DynamicMalta_discharge_varspeed
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -32,6 +32,7 @@ model DynamicMalta_charge_discharge
               */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
+  /*
   parameter Integer Mode = 1;
   parameter Real SOC_tank1_start = 0;
   parameter SI.Temperature T_tank1_start = from_degC(565);
@@ -41,8 +42,10 @@ model DynamicMalta_charge_discharge
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 0;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  /*
-      Integer Mode(start = 2);
+  */
+
+
+      parameter Integer Mode = 2;
       parameter Real SOC_tank1_start = 1;
       parameter SI.Temperature T_tank1_start = from_degC(565);
       parameter Real SOC_tank2_start = 0;
@@ -51,7 +54,7 @@ model DynamicMalta_charge_discharge
       parameter SI.Temperature T_tank3_start = from_degC(25.1);
       parameter Real SOC_tank4_start = 1;
       parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
+
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 273.15;
   parameter SI.Temperature T_0_MMA = 276.69;
@@ -71,8 +74,11 @@ model DynamicMalta_charge_discharge
   SI.Power P_elec_charge(displayUnit = "MW");
  // parameter Real m_dot_div_p_charge=0.0076;
   Real m_dot_div_p_charge(start=0.0076);
-  parameter SI.Power P_set=174*1000*1000;
   
+  parameter Real n_CO_charge_start = 3000;
+  parameter Real n_CO_start = 3000;  
+  //parameter SI.Power P_set=174*1000*1000;
+  //Real dummy_speed(start=3000);
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -320,8 +326,8 @@ model DynamicMalta_charge_discharge
   WorkingFluid.ThermodynamicState outlet_hotside_HEXrej_charge(p(start = p_2_a_nom_charge), T(start = from_degC(20)));
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   //-------------COMPRESSOR CHARGE//
-  parameter Real p = 1.8 "compressor map factor";
-  parameter Real m = 1.4 "compressor map factor";
+  parameter Real p = 0.42 "compressor map factor";
+  parameter Real m = 1.06 "compressor map factor";
   parameter Real c4 = 0.3 "factor 4, see Zhang2002";
   Real c1_charge "factor 1";
   Real c2_charge "factor 2";
@@ -336,6 +342,7 @@ model DynamicMalta_charge_discharge
   //actual
   Real beta_CO_charge(start = beta_CO_nom_charge) "absolute compression ratio";
   parameter Real n_CO_charge = 3000 "actual speed";
+  //Real n_CO_charge(start = n_CO_charge_start) "actual speed";
   SI.Efficiency eta_is_CO_charge "absolute isentropic efficiency";
   //reduced
   Real beta_CO_red_charge(start = 1) "reduced compression ratio";
@@ -345,6 +352,9 @@ model DynamicMalta_charge_discharge
   //other
   SI.Power P_mech_CO_charge(displayUnit = "MW");
   SI.Power P_loss_irr_CO_charge(displayUnit = "MW");
+  //limits
+  Real beta_CO_red_charge_min;
+  Real beta_CO_red_charge_max;
   //-------------EXPANDER CHARGE//
   parameter Real t = 0.3 "parameter, see Zhang2002";
   Real alpha_charge "factor, see Zhang2002";
@@ -552,7 +562,8 @@ model DynamicMalta_charge_discharge
   SI.Pressure p_1_nom = p_fix "state 1 pressure";
   //actual
   Real beta_CO(start = beta_CO_nom) "absolute compression ratio";
-  parameter Real n_CO = 3000 "actual speed";
+  //parameter Real n_CO = 3000 "actual speed";
+  Real n_CO(start = n_CO_start) "actual speed";
   SI.Efficiency eta_is_CO "absolute isentropic efficiency";
   //reduced
   Real beta_CO_red(start = 1) "reduced compression ratio";
@@ -562,6 +573,10 @@ model DynamicMalta_charge_discharge
   //other
   SI.Power P_mech_CO(displayUnit = "MW");
   SI.Power P_loss_irr_CO(displayUnit = "MW");
+    //limits
+  Real beta_CO_red_min;
+  Real beta_CO_red_max;  
+  
   //-------------EXPANDER DISCHARGE//
   Real alpha "factor, see Zhang2002";
   //design
@@ -582,6 +597,7 @@ model DynamicMalta_charge_discharge
   //other
   SI.Power P_mech_TU(displayUnit = "MW");
   SI.Power P_loss_irr_TU(displayUnit = "MW");
+
   //-------------SYSTEM DISCHARGE//
   SI.Power P_mech_shaft(displayUnit = "MW");
   SI.HeatFlowRate Q_pump(displayUnit = "MW");
@@ -653,27 +669,36 @@ model DynamicMalta_charge_discharge
   WorkingFluid.SpecificEnthalpy h_4_a "turbine-side recuperation outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_a "turbine-side recuperation outlet spec. entropy";
   Modelica.Blocks.Continuous.SecondOrder T4_a_guess_control(D = 0.4, w = 0.5) annotation(
-    Placement(transformation(origin = {-66, 46}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {-74, -40}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control_discharge(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {56, 50}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {82, -10}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T3_guess_control_discharge(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {58, -2}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {82, -46}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T1_guess_control_discharge(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {58, -40}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {82, -84}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {-64, -38}, extent = {{-10, -10}, {10, 10}})));
-Modelica.Blocks.Continuous.LimPID PID_inventory_control annotation(
-    Placement(transformation(origin = {-12, 6}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
+ Modelica.Blocks.Sources.Ramp ramp(height = -500, duration = 3500, offset = 3000, startTime = 100)  annotation(
+    Placement(transformation(origin = {78, 76}, extent = {{-10, -10}, {10, 10}})));
+ 
+ Modelica.Blocks.Sources.Constant p_set(k = -95*1000*1000)  annotation(
+    Placement(transformation(origin = {-86, 18}, extent = {{-10, -10}, {10, 10}})));
+ Modelica.Blocks.Continuous.LimPID PID_varspeed(controllerType = Modelica.Blocks.Types.SimpleController.PID, Ti = 1, k = -0.00001, yMax = 3500, yMin = 1500, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = n_CO_start, wp = 0.9, wd = 0.1) annotation(
+    Placement(transformation(origin = {-4, 18}, extent = {{-10, -10}, {10, 10}})));
+   
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
 //charge
-  T_4_charge_guess = from_degC(267.5);
+  T_4_charge_guess = from_degC(274.5);
   T_4_a_charge_guess = from_degC(18.14);
 //discharge
   T_4_guess = from_degC(270);
   T_1_guess = from_degC(-52.760);
   T_3_guess = from_degC(556);
+  //speed
+  //dummy_speed=3000;
+//  n_CO=n_CO_start;
 //tanks
   m_tank1 = m_tank1_start;
   T_tank1 = T_tank1_start;
@@ -685,15 +710,21 @@ initial equation
   T_tank4 = T_tank4_start;
 equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
+//P_set = PID_varspeed.u_s;
+  //P_mech_shaft_charge = PID_varspeed_charge.u_m;
+  //n_CO_charge = PID_varspeed_charge.y;
+ 
+  P_mech_shaft = PID_varspeed.u_m;
+  n_CO = PID_varspeed.y;
 
-P_set=PID_inventory_control.u_s;
-P_mech_shaft_charge=PID_inventory_control.u_m;
+//dummy_speed=PID_varspeed.y;
+// n_CO_charge=ramp.y;
 /*
 m_dot_WF_charge=PID_inventory_control.y;
 
 */
   P_elec_charge = P_mech_shaft_charge;
- // P_mech_shaft_charge=P_set;
+// P_mech_shaft_charge=P_set;
 //not final eq
   P_elec = P_mech_shaft;
 //not final eq
@@ -758,8 +789,8 @@ m_dot_WF_charge=PID_inventory_control.y;
   solsalt_tank1.T = T_tank1;
 //losses
   Q_div_A_tank1 = (0.00017*(T_tank1 - 273.15) + 0.012)*1000;
-//Q_dot_to_amb_tank1 = -Q_div_A_tank1*A_W_tank_solsalt;
-  Q_dot_to_amb_tank1 = 0;
+  Q_dot_to_amb_tank1 = -Q_div_A_tank1*A_W_tank_solsalt;
+//Q_dot_to_amb_tank1 = 0;
 //-------------TANK 2//
 //nominal
   solsalt_tank2_nom = HotTESLiquid.setState_pT(p_tank2_nom, T_tank2_nom);
@@ -794,8 +825,8 @@ m_dot_WF_charge=PID_inventory_control.y;
   solsalt_tank2.T = T_tank2;
 //losses
   Q_div_A_tank2 = (0.00017*(T_tank2 - 273.15) + 0.012)*1000;
-//Q_dot_to_amb_tank2 = -Q_div_A_tank2*A_W_tank_solsalt;
-  Q_dot_to_amb_tank2 = 0;
+  Q_dot_to_amb_tank2 = -Q_div_A_tank2*A_W_tank_solsalt;
+//Q_dot_to_amb_tank2 = 0;
 //-------------TANK 3//
 //nominal
   coldliq_tank3_nom = ColdTESLiquid.setState_pT(p_tank3_nom, T_tank3_nom);
@@ -878,13 +909,16 @@ m_dot_WF_charge=PID_inventory_control.y;
   c3_charge = -1*(p*m*n_CO_red_charge - m^2*n_CO_red_charge^3)/(p*(1 - m/n_CO_red_charge) + n_CO_red_charge*(n_CO_red_charge - m)^2);
   P_mech_CO_charge = m_dot_WF_charge*(h_3_charge - h_4_charge);
   P_loss_irr_CO_charge = T0*m_dot_WF_charge*(s_3_charge - s_4_charge);
+//limits
+  beta_CO_red_charge_min = 0.44008400621740806*(G_CO_red_charge)^2 + 0.15193846169229142*G_CO_red_charge + 0.1260521481189032;
+  beta_CO_red_charge_max = -0.3505543472709579*(G_CO_red_charge)^2 + 1.6961020320713247*G_CO_red_charge - 0.17150246895420682;
 //-------------EXPANDER CHARGE//
 //parameters
   alpha_charge = sqrt(1.4 - 0.4*n_TU_red_charge);
 //reduced values expander
   n_TU_red_charge = n_TU_charge/sqrt(T_2_a_charge)/(n_TU_nom_charge/sqrt(T_2_a_nom_charge));
   G_TU_red_charge = m_dot_WF_charge*sqrt(T_2_a_charge)/p_2_a_charge/(m_dot_WF_nom_charge*sqrt(T_2_a_nom_charge)/p_2_a_nom_charge);
-  G_TU_red_charge = alpha_charge*sqrt(T_2_a_nom_charge/T_2_a_charge)*sqrt((beta_TU_charge^2 - 1)/(beta_TU_nom_charge^2 - 1));
+  m_dot_WF_charge/m_dot_WF_nom_charge = alpha_charge*sqrt(T_2_a_nom_charge/T_2_a_charge)*sqrt((beta_TU_charge^2 - 1)/(beta_TU_nom_charge^2 - 1));
   beta_TU_red_charge = beta_TU_charge/beta_TU_nom_charge;
   eta_is_TU_red_charge = (1 - t*(1 - n_TU_red_charge)^2)*(n_TU_red_charge/G_TU_red_charge)*(2 - ((n_TU_red_charge/G_TU_red_charge)));
   eta_is_TU_red_charge = eta_is_TU_charge/eta_is_TU_nom_charge;
@@ -1100,6 +1134,9 @@ m_dot_WF_charge=PID_inventory_control.y;
   c3 = -1*(p*m*n_CO_red - m^2*n_CO_red^3)/(p*(1 - m/n_CO_red) + n_CO_red*(n_CO_red - m)^2);
   P_mech_CO = m_dot_WF*(h_2 - h_1);
   P_loss_irr_CO = T0*m_dot_WF*(s_2 - s_1);
+//limits
+  beta_CO_red_min = 0.44008400621740806*(G_CO_red)^2 + 0.15193846169229142*G_CO_red + 0.1260521481189032;
+  beta_CO_red_max = -0.3505543472709579*(G_CO_red)^2 + 1.6961020320713247*G_CO_red - 0.17150246895420682;
 //-------------EXPANDER DISCHARGE//
 //parameters
   alpha = sqrt(1.4 - 0.4*n_TU_red);
@@ -1107,7 +1144,7 @@ m_dot_WF_charge=PID_inventory_control.y;
   eta_is_TU_red = eta_is_TU/eta_is_TU_nom;
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
-  G_TU_red = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
+  m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
   eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
 //other turbine equations
@@ -1308,19 +1345,94 @@ m_dot_WF_charge=PID_inventory_control.y;
   state_4_a = WorkingFluid.setState_pT(p_4_a, T_4_a);
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
+
 //--------------------------COMPONENT MANAGEMENT--------------------------//
-  if x_tank1 < x_tank_solsalt_min - 0.01 then
-    terminate("Minimum fill level of tank 1 reached");
+//MODE 1 CHARGE
+  if Mode == 1 then
+    //tanks
+    if x_tank2 < x_tank_solsalt_min then
+      terminate("Minimum fill level of tank 2 reached");
+    end if;
+    if x_tank3 < x_tank_coldliq_min then
+      terminate("Minimum fill level of tank 3 reached");
+    end if;
+    if x_tank1 > x_tank1_solsalt_max then
+      terminate("Maximum fill level of tank 1 reached");
+    end if;
+    if x_tank4 > x_tank4_coldliq_max then
+      terminate("Maximum fill level of tank 4 reached");
+    end if;
+    if T_tank1 > 873.150000 - 1 then
+      terminate("Temperature in tank 1 too high");    
+    end if;
+    if T_tank2 < 533.150000 + 1 then
+      terminate("Temperature in tank 2 too low");    
+    end if;    
+    //turbomachinery
+    if beta_CO_red_charge> beta_CO_red_charge_max then
+      terminate("surge line reached");
+    end if;
+    if beta_CO_red_charge< beta_CO_red_charge_min then
+      terminate("choke line reached");
+    end if;
+    if n_CO_red_charge<0.6 then
+      terminate("compressor reduced relative speed too low");    
+    end if;
+    if n_CO_red_charge>1.05 then
+      terminate("compressor reduced relative speed too high");    
+    end if;     
+    
+//MODE 2 DISCHARGE
+  elseif Mode == 2 then
+    //tanks
+    if x_tank2 > x_tank2_solsalt_max then
+      terminate("Maximum fill level of tank 2 reached");
+    end if;
+    if x_tank3 > x_tank3_coldliq_max then
+      terminate("Maximum fill level of tank 3 reached");
+    end if;
+    
+    if x_tank1 < x_tank_solsalt_min then
+      terminate("Minimum fill level of tank 1 reached");
+    end if;
+    if x_tank4 < x_tank_coldliq_min then
+      terminate("Minimum fill level of tank 4 reached");
+    end if;
+    
+    if T_tank1 > 873.150000 - 1 then
+      terminate("Temperature in tank 1 too high");    
+    end if;
+    if T_tank2 < 533.150000 + 1 then
+      terminate("Temperature in tank 2 too low");    
+    end if;   
+    //turbomachinery
+    if beta_CO_red> beta_CO_red_max then
+      terminate("surge line reached");
+    end if;
+    if beta_CO_red< beta_CO_red_min then
+      terminate("choke line reached");
+    end if;
+    if n_CO_red<0.6 then
+      terminate("compressor reduced relative speed too low");    
+    end if;    
+    if n_CO_red>1.05 then
+      terminate("compressor reduced relative speed too high");    
+    end if;     
+//MODE 0 HOLD
+  else
+    if T_tank1 > 873.150000 - 1 then
+      terminate("Temperature in tank 1 too high");    
+    end if;
+    if T_tank2 < 533.150000 + 1 then
+      terminate("Temperature in tank 2 too low");    
+    end if;   
   end if;
-  if x_tank2 < x_tank_solsalt_min - 0.01 then
-    terminate("Minimum fill level of tank 2 reached");
-  end if;
-  if x_tank3 < x_tank_coldliq_min - 0.01 then
-    terminate("Minimum fill level of tank 3 reached");
-  end if;
-  if x_tank4 < x_tank_coldliq_min - 0.01 then
-    terminate("Minimum fill level of tank 4 reached");
-  end if;
+
+
+
+  connect(p_set.y, PID_varspeed.u_s) annotation(
+    Line(points = {{-74, 18}, {-16, 18}}, color = {0, 0, 127}));
+
   annotation(
-    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss set to zero</div><div>Mode set to pulse signal to simulate continuous 10h charge 10h discharge cycles</div><div><br></div><div>not up to date anymore in terms of parameters and limits</div></body></html>"));
-end DynamicMalta_charge_discharge;
+    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Variable speed</div><div>Heat loss enabled</div><div>turbomachinery updated with limits</div></body></html>"));
+end DynamicMalta_discharge_varspeed;
