@@ -16,7 +16,7 @@ model Methanol
     Medium.ThermodynamicState FluidState "Thermodynamic state of TES fluid"; 
  
    parameter Pressure p = from_bar(1) "TES fluid pressure";
-   parameter Temperature T = from_degC(17.7) "TES fluid temperature";
+   parameter Temperature T = from_degC(313.305) "TES fluid temperature";
    Density d "density of TES fluid";   
    Medium.BaseProperties medium_a "Medium properties of port_a"; 
    Density d_basep;

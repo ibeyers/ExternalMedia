@@ -2,3 +2,6 @@ StaticMalta_open_nom
 StaticMalta_open_mod
 StaticMalta_open_loop
 StaticMalta_open_loop_add_comp
+DynamicMalta_charge_discharge_tanks
+DynamicMalta_charge_discharge_tanks_mdotvar
+DynamicMalta_charge_discharge
