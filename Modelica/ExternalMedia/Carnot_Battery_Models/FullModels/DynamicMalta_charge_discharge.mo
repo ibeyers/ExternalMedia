@@ -32,7 +32,8 @@ model DynamicMalta_charge_discharge
               */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode = 1;
+  parameter Integer Mode = 2;
+  /*
   parameter Real SOC_tank1_start = 0;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 1;
@@ -41,8 +42,8 @@ model DynamicMalta_charge_discharge
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 0;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  /*
-      Integer Mode(start = 2);
+  */
+
       parameter Real SOC_tank1_start = 1;
       parameter SI.Temperature T_tank1_start = from_degC(565);
       parameter Real SOC_tank2_start = 0;
@@ -51,7 +52,7 @@ model DynamicMalta_charge_discharge
       parameter SI.Temperature T_tank3_start = from_degC(25.1);
       parameter Real SOC_tank4_start = 1;
       parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
+
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 273.15;
   parameter SI.Temperature T_0_MMA = 276.69;

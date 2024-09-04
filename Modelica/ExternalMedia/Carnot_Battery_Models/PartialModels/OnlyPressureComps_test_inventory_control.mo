@@ -1,32 +1,33 @@
 within ExternalMedia.Carnot_Battery_Models.PartialModels;
 
-model OnlyPressureComps
+model OnlyPressureComps_test_inventory_control
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
   //-------------Discharge//
+   Real m_dot_div_p(start = 0.0076);
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
   //actual
-  SI.MassFlowRate m_dot_WF(start = 762) "mass flow rate";
+  SI.MassFlowRate m_dot_WF = 762 "mass flow rate";
   parameter Real f_p = 0.01625 "pressure_loss_factor percent";
   parameter Real k_p=0.0062084"pressure_loss_factor";
   
-  parameter SI.Pressure p_fix = 200000 "fixed pressure point through expansion vessel";
+  parameter SI.Pressure p_fix = 100000 "fixed pressure point through expansion vessel";
 
   //fixed pressure point charge
-  SI.Pressure p_1 = p_fix "state 1 pressure";
+  SI.Pressure p_1(start = p_fix) "state 1 pressure";
   //STATE 1 a discharge
-  SI.Pressure p_1_a(start = 103606*2) "pressure after Heat rejection ";
-  SI.Pressure p_2(start = 591100*2) "pressure coming out of compressor";
+  SI.Pressure p_1_a(start = 103606) "pressure after Heat rejection ";
+  SI.Pressure p_2(start = 591100) "pressure coming out of compressor";
  //STATE 3a discharge
-  SI.Pressure p_3_a(start = 587493*2) "Pressure after recup";
+  SI.Pressure p_3_a(start = 587493) "Pressure after recup";
   //STATE 3 discharge
-  SI.Pressure p_3(start = 583886*2) "Pressure after recup";
+  SI.Pressure p_3(start = 583886) "Pressure after recup";
   //STATE 4 discharge
-  SI.Pressure p_4(start = 107213*2) " pressure at turb outlet";
+  SI.Pressure p_4(start = 107213) " pressure at turb outlet";
   //STATE 4 a discharge
-  SI.Pressure p_4_a(start = 103606*2) " pressure at recuperation outlet";
+  SI.Pressure p_4_a(start = 103606) " pressure at recuperation outlet";
 
   SI.Pressure delta_P_HEX1;
   SI.Pressure delta_P_HEX2;
@@ -68,10 +69,10 @@ model OnlyPressureComps
   parameter Real n_TU_nom = 3000 "design speed";
   parameter SI.Efficiency eta_is_TU_nom = 0.94 "design isentropic efficiency";
   parameter SI.Temperature T_3_nom = from_degC(555) "design turbine inlet temperature";
-  parameter SI.Pressure p_3_nom = 583886*2 "design turbine inlet pressure";
+  parameter SI.Pressure p_3_nom = 583886 "design turbine inlet pressure";
   //actual
   Real beta_TU(start = beta_TU_nom) "absolute expansion ratio";
-  parameter Real n_TU = 3000 "actual speed";
+  Real n_TU(start = 3000) "actual speed";
 
   //reduced
   Real beta_TU_red(start = 1) "reduced expansion ratio";
@@ -84,6 +85,8 @@ initial equation
 
   T_3_guess = from_degC(556);
 equation
+  m_dot_div_p = m_dot_WF/p_1;
+  p_1=98000;
 //-------------COMPRESSOR DISCHARGE//
 //reduced values compressor
   beta_CO_red = beta_CO/beta_CO_nom;
@@ -96,12 +99,13 @@ equation
   c2 = (p - 2*m*n_CO_red^2)/(p*(1 - m/n_CO_red) + n_CO_red*(n_CO_red - m)^2);
   c3 = -1*(p*m*n_CO_red - m^2*n_CO_red^3)/(p*(1 - m/n_CO_red) + n_CO_red*(n_CO_red - m)^2);
 //-------------EXPANDER DISCHARGE//
+  n_TU=n_CO;
 //parameters
   alpha = sqrt(1.4 - 0.4*n_TU_red);
 //reduced values turbine
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
-  G_TU_red = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
+  //m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
 //other turbine equations
   beta_TU = p_3/p_4;
@@ -120,13 +124,11 @@ equation
 //delta_HEX3 =
   p_1 = p_1_a - delta_P_HEX3;
 //-------------HEX 4 rejection DISCHARGE//
-  p_4_a = p_1_a;
+ p_4_a = p_1_a;
   
    T_3= from_degC(556)-0.0006944444444444445 * time;
   //state 3 DISCHARGE guess
   T_3 = T3_guess_control_discharge.u;
   T_3_guess = T3_guess_control_discharge.y;
   
-annotation(
-    __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
-end OnlyPressureComps;
+end OnlyPressureComps_test_inventory_control;
