@@ -32,7 +32,7 @@ model DynamicMalta_charge_discharge_cycling
             */
  
   //--------------------------INPUTS
-  //input Integer Mode(start = 1); 
+  //input Integer Mode(start = 1);
   Integer Mode(start = 1);
   parameter Real SOC_tank1_start = 0;
   parameter SI.Temperature T_tank1_start = from_degC(565);
@@ -56,9 +56,14 @@ model DynamicMalta_charge_discharge_cycling
     parameter SI.Temperature T_tank4_start = from_degC(-59.85);
 */
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
-  parameter SI.Temperature T0 = 273.15;
-  parameter SI.Temperature T_0_MMA = 276.69;
-  parameter SI.Temperature T_amb = from_degC(25);
+  parameter SI.Temperature T0 = T_amb;
+  parameter SI.Temperature T_amb = from_degC(20);
+  HotTESLiquid.BaseProperties state_amb_solsalt(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of ambient reference state";
+  ColdTESLiquid.BaseProperties state_amb_coldliq(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of ambient reference state"; 
+//-------------Tanks//
+  SI.Energy exergy_total_tanks(displayUnit = "MWh");  
+  SI.Energy int_energy_total_tanks(displayUnit = "MWh");
+  //SI.Power der_Exergy;     
   //-------------Charge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom_charge = 766 "design mass flow rate";
@@ -304,22 +309,7 @@ model DynamicMalta_charge_discharge_cycling
   ColdTESLiquid.ThermodynamicState outlet_hotside_HEX3_charge(p(start = 101325), T(start = T_tank4_nom), phase(start = 1)) "Medium properties ";
   WorkingFluid.ThermodynamicState outlet_coldside_HEX3_charge(p(start = 100000), T(start = T_tank3_nom), phase(start = 1)) "Medium properties ";
   //-------------HEX rejection charge//
-  parameter Real NTU_HEXrej_charge = 7.8 "Number of transfer units of rejection HEX";
-  WorkingFluid.ThermodynamicState state_amb_air(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
-  //cold-side
-  Real C_cold_HEXrej_charge "Heat capacity rate of cold side of rejection HEX ";
-  SI.MassFlowRate m_dot_rej_charge "required mass flow rate to cool down to fixed T_2";
-  //hot-side
-  Real C_hot_HEXrej_charge "Heat capacity rate of hot side of rejection HEX";
-  //variables for effectiveness
-  Real C_min_HEXrej_charge;
-  Real C_max_HEXrej_charge;
-  Real C_r_HEXrej_charge;
-  Real eff_HEXrej_charge(start = 0.99) "effectiveness of rej HEX";
-  SI.HeatFlowRate Q_dot_max_HEXrej_charge(displayUnit = "MW");
-  SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");
-  SI.SpecificEnthalpy h_hot_out_HEXrej_charge(start = 431395);
-  WorkingFluid.ThermodynamicState outlet_hotside_HEXrej_charge(p(start = p_2_a_nom_charge), T(start = from_degC(20)));
+  SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");  
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   //-------------COMPRESSOR CHARGE//
   parameter Real p = 1.8 "compressor map factor";
@@ -332,7 +322,7 @@ model DynamicMalta_charge_discharge_cycling
   parameter Real beta_CO_nom_charge = 4.592 "design compression ratio";
   parameter Real n_CO_nom_charge = 3000 "design speed";
  // parameter SI.Efficiency eta_is_CO_nom_charge = 0.90535 "design isentropic efficiency";
- parameter SI.Efficiency eta_is_CO_nom_charge = 0.903175 "design isentropic efficiency";
+ parameter SI.Efficiency eta_is_CO_nom_charge = 0.90385 "design isentropic efficiency";
   SI.Temperature T_4_nom_charge = from_degC(267.533) "state 4 temperature";
   SI.Pressure p_4_nom_charge = p_fix_charge "state 4 pressure";
   //actual
@@ -354,7 +344,7 @@ model DynamicMalta_charge_discharge_cycling
   parameter Real beta_TU_nom_charge = 4.331 "design expansion ratio";
   parameter Real n_TU_nom_charge = 3000 "design speed";
   parameter SI.Efficiency eta_is_TU_nom_charge = 0.92 "design isentropic efficiency";
-  parameter SI.Temperature T_2_a_nom_charge = from_degC(25) "nominal inlet temperature";
+  parameter SI.Temperature T_2_a_nom_charge = from_degC(24) "nominal inlet temperature";
   parameter SI.Pressure p_2_a_nom_charge = 442461 "state pressure";
   //actual
   parameter Real n_TU_charge = 3000 "actual speed";
@@ -449,7 +439,7 @@ model DynamicMalta_charge_discharge_cycling
   Real UA_HEX1;
   SI.Pressure delta_P_HEX1;
   //outlet guess states
-  HotTESLiquid.ThermodynamicState outlet_hotside_guess_HEX1(p(start = 1001315), T(start = 271.5)) "Medium properties ";
+  HotTESLiquid.ThermodynamicState outlet_hotside_guess_HEX1(p(start = 101315), T(start = 271.5)) "Medium properties ";
   WorkingFluid.ThermodynamicState outlet_coldside_guess_HEX1(p(start = 572045), T(start = 556.099)) "Medium properties ";
   SI.SpecificHeatCapacity cp_hot_ave_HEX1;
   SI.SpecificHeatCapacity cp_cold_ave_HEX1;
@@ -527,25 +517,7 @@ model DynamicMalta_charge_discharge_cycling
   WorkingFluid.ThermodynamicState outlet_hotside_HEX3(p(start = 100000), T(start = T_tank3_nom)) "Medium properties ";
   SI.Power P_loss_irr_HEX3(displayUnit = "MW");
   //-------------HEX 4 rejection discharge//
-  parameter SI.Temperature T_rej_fluid_inlet = from_degC(28);
-  parameter SI.Pressure p_rej_fluid_inlet = 1001315;
-  parameter Real NTU_HEXrej = 7.8 "Number of transfer units of rejection HEX";
-  RejectionHeatTransferFluid.ThermodynamicState state_rej_inlet(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec inlet";
-  //hot-side
-  Real C_hot_HEXrej "Heat capacity rate of hot side of rejection HEX";
-  //variables for effectiveness
-  Real C_min_HEXrej;
-  Real C_r_HEXrej;
-  //cold-side
-  Real C_cold_HEXrej "Heat capacity rate of cold side of rejection HEX ";
-  SI.MassFlowRate m_dot_rej "required mass flow rate to cool down to fixed T_1_a";
-  Real C_max_HEXrej;
-  Real eff_HEXrej(start = 0.99) "effectiveness of rej HEX";
-  //source Farres-Artunez Dissertation
-  SI.HeatFlowRate Q_dot_max_HEXrej(displayUnit = "MW");
   SI.HeatFlowRate Q_dot_HEXrej(displayUnit = "MW");
-  SI.SpecificEnthalpy h_hot_out_HEXrej(start = 431395);
-  WorkingFluid.ThermodynamicState outlet_hotside_HEXrej(p(start = 101653), T(start = from_degC(32.192)));
   SI.Power P_loss_irr_HEXrej(displayUnit = "MW");
   //-------------COMPRESSOR DISCHARGE/
   Real c1 "factor 1";
@@ -699,11 +671,19 @@ initial equation
 equation
   Mode=input_pulse.y;
 //--------------------------EQUATIONS SYSTEM-----------------------------//
+  state_amb_solsalt.p = 101315;
+  state_amb_solsalt.T=550; 
+  state_amb_coldliq.p = 101315;
+  state_amb_coldliq.T=T_amb;
+  
   P_elec_charge = P_mech_shaft_charge;//not final eq
   P_elec = P_mech_shaft;
 //not final eq
+//-------------SYSTEM TANKS//
+  exergy_total_tanks = exergy_tank1 + exergy_tank2 + exergy_tank3 + exergy_tank4;
+  int_energy_total_tanks = int_energy_tank1 + int_energy_tank2 + int_energy_tank3 + int_energy_tank4;
   Q_dot_hightemp_res = der(int_energy_tank1 + int_energy_tank2);
-
+  //der_Exergy=der(exergy_total_tanks);
 //-------------SYSTEM CHARGE//
   P_mech_shaft_charge = P_mech_CO_charge + P_mech_TU_charge;
   Q_pump_charge = Q_dot_HEX1_charge;
@@ -829,6 +809,7 @@ equation
   m_tank3 = coldliq_tank3.d*A_cross_tank_coldliq*x_tank3;
   int_energy_tank3 = m_tank3*coldliq_tank3.u;
   exergy_tank3 = m_tank3*coldliq_tank3_state.cp*(T_tank3 - T_amb) - T_amb*m_tank3*coldliq_tank3_state.cp*log(T_tank3/T_amb);
+
 //thermodynamic states
   coldliq_tank3_state = ColdTESLiquid.setState_pT(p_tank3_nom, T_tank3);
 //solar salt properties
@@ -1022,19 +1003,7 @@ equation
 //irrev
   P_loss_irr_HEX3_charge = T0*((m_dot_WF_charge*(s_4_a_charge - s_1_charge)) + (m_dot_methanol_HEX3_charge*(outlet_hotside_HEX3_charge.s - coldliq_tank3_state.s)));
 //-------------HEX 4 rejection charge//
-  state_amb_air = WorkingFluid.setState_pT(1001315, T_amb);
-  C_hot_HEXrej_charge = m_dot_WF_charge*WorkingFluid.specificHeatCapacityCp(state_2_charge);
-  C_min_HEXrej_charge = C_hot_HEXrej_charge;
-  C_cold_HEXrej_charge = C_max_HEXrej_charge;
-  C_hot_HEXrej_charge*2 = C_cold_HEXrej_charge;
-  C_cold_HEXrej_charge = m_dot_rej_charge*WorkingFluid.specificHeatCapacityCp(state_amb_air);
-  C_r_HEXrej_charge = C_min_HEXrej_charge/C_max_HEXrej_charge;
-  Q_dot_max_HEXrej_charge = C_min_HEXrej_charge*(T_2_charge - T_amb);
-  eff_HEXrej_charge = (1 - exp(-NTU_HEXrej_charge*(1 - C_r_HEXrej_charge)))/(1 - C_r_HEXrej_charge*exp(-NTU_HEXrej_charge*(1 - C_r_HEXrej_charge)));
-  Q_dot_HEXrej_charge = eff_HEXrej_charge*Q_dot_max_HEXrej_charge;
-//hot side energy balance
-  outlet_hotside_HEXrej_charge = WorkingFluid.setState_ph(p_2_a_charge, h_hot_out_HEXrej_charge);
-  Q_dot_HEXrej_charge = (h_2_charge - h_hot_out_HEXrej_charge)*m_dot_WF_charge;
+  Q_dot_HEXrej_charge = (h_2_charge - h_2_a_charge)*m_dot_WF_charge;  
 //irrev
   P_loss_irr_HEXrej_charge = T0*((m_dot_WF_charge*(s_2_a_charge - s_2_charge - ((h_2_a_charge - h_2_charge)/T0))));
 //-------------STATES//
@@ -1243,24 +1212,13 @@ equation
   outlet_coldside_HEX3 = ColdTESLiquid.setState_ph(p_tank3_nom, h_cold_out_HEX3);
   T_1 = outlet_hotside_HEX3.T;
 //irrev
-  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T_0_MMA*(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s));
+  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a)) +(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s)));
 //-------------HEX 4 rejection DISCHARGE//
   p_4_a = p_1_a;
-  state_rej_inlet = RejectionHeatTransferFluid.setState_pT(p_rej_fluid_inlet, T_rej_fluid_inlet);
-  C_hot_HEXrej = m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_4_a);
-  C_min_HEXrej = C_hot_HEXrej;
-  C_min_HEXrej*1.28 = C_max_HEXrej;
-  eff_HEXrej = (1 - exp(-NTU_HEXrej*(1 - C_r_HEXrej)))/(1 - C_r_HEXrej*exp(-NTU_HEXrej*(1 - C_r_HEXrej)));
-  C_cold_HEXrej = C_max_HEXrej;
-  C_cold_HEXrej = m_dot_rej*RejectionHeatTransferFluid.specificHeatCapacityCp(state_rej_inlet);
-  C_r_HEXrej = C_min_HEXrej/C_max_HEXrej;
-  Q_dot_max_HEXrej = C_min_HEXrej*(T_4_a - T_rej_fluid_inlet);
-  Q_dot_HEXrej = eff_HEXrej*Q_dot_max_HEXrej;
-//hot side energy balance
-  outlet_hotside_HEXrej = WorkingFluid.setState_ph(p_1_a, h_hot_out_HEXrej);
-  Q_dot_HEXrej = (h_4_a - h_hot_out_HEXrej)*m_dot_WF;
+  Q_dot_HEXrej = (h_4_a - h_1_a)*m_dot_WF;
 //irrev
   P_loss_irr_HEXrej = T0*((m_dot_WF*(s_1_a - s_4_a - ((h_1_a - h_4_a)/T0))));
+  
 //state 1_a DISCHARGE
   state_1_a = WorkingFluid.setState_pT(p_1_a, T_1_a);
   h_1_a = WorkingFluid.specificEnthalpy(state_1_a);
@@ -1312,7 +1270,7 @@ equation
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
 //--------------------------COMPONENT MANAGEMENT--------------------------//
-
+/*
   if x_tank1 < x_tank_solsalt_min - 0.01 then
     terminate("Minimum fill level of tank 1 reached");
   end if;
@@ -1325,7 +1283,7 @@ equation
   if x_tank4 < x_tank_coldliq_min - 0.01 then
     terminate("Minimum fill level of tank 4 reached");
   end if;
-
+*/
   annotation(
-    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss set to zero</div><div>Mode set to pulse signal to simulate continuous 10h charge 10h discharge cycles</div></body></html>"));
+    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss set to zero</div><div>Mode set to pulse signal to simulate continuous 10h charge 10h discharge cycles</div><div>Exergy calculation of tanks is messed up-&gt; use only for fitting, not for analysis</div></body></html>"));
 end DynamicMalta_charge_discharge_cycling;

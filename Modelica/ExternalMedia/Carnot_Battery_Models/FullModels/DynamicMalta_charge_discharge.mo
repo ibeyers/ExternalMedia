@@ -32,8 +32,8 @@ model DynamicMalta_charge_discharge
               */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode = 2;
-  /*
+  parameter Integer Mode = 1;
+
   parameter Real SOC_tank1_start = 0;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 1;
@@ -42,8 +42,8 @@ model DynamicMalta_charge_discharge
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 0;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
 
+/*
       parameter Real SOC_tank1_start = 1;
       parameter SI.Temperature T_tank1_start = from_degC(565);
       parameter Real SOC_tank2_start = 0;
@@ -52,7 +52,7 @@ model DynamicMalta_charge_discharge
       parameter SI.Temperature T_tank3_start = from_degC(25.1);
       parameter Real SOC_tank4_start = 1;
       parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-
+*/
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 273.15;
   parameter SI.Temperature T_0_MMA = 276.69;
@@ -73,7 +73,6 @@ model DynamicMalta_charge_discharge
  // parameter Real m_dot_div_p_charge=0.0076;
   Real m_dot_div_p_charge(start=0.0076);
   parameter SI.Power P_set=174*1000*1000;
-  
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -663,8 +662,6 @@ model DynamicMalta_charge_discharge
     Placement(transformation(origin = {58, -40}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-64, -38}, extent = {{-10, -10}, {10, 10}})));
-Modelica.Blocks.Continuous.LimPID PID_inventory_control annotation(
-    Placement(transformation(origin = {-12, 6}, extent = {{-10, -10}, {10, 10}})));
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -687,14 +684,8 @@ initial equation
 equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
 
-P_set=PID_inventory_control.u_s;
-P_mech_shaft_charge=PID_inventory_control.u_m;
-/*
-m_dot_WF_charge=PID_inventory_control.y;
-
-*/
   P_elec_charge = P_mech_shaft_charge;
- // P_mech_shaft_charge=P_set;
+// P_mech_shaft_charge=P_set;
 //not final eq
   P_elec = P_mech_shaft;
 //not final eq
@@ -704,7 +695,7 @@ m_dot_WF_charge=PID_inventory_control.y;
   Q_pump_charge = Q_dot_HEX1_charge;
   COP = Q_pump_charge/P_mech_shaft_charge;
   work_ratio_charge = P_mech_CO_charge/abs(P_mech_TU_charge);
-  m_dot_div_p_charge = m_dot_WF_charge/p_1_charge;
+  m_dot_div_p_charge = m_dot_WF_charge/p_4_charge;
 //-------------SYSTEM DISCHARGE//
   P_mech_shaft = P_mech_CO + P_mech_TU;
   Q_pump = -Q_dot_HEX1;
