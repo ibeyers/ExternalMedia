@@ -1,4 +1,4 @@
-within ExternalMedia.Carnot_Battery_Models.FullModels;
+within ExternalMedia.Carnot_Battery_Models.Graveyard;
 
 model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   //--------------------------IMPORTS-----------------------------//
@@ -28,22 +28,21 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
 
   replaceable package RejectionHeatTransferFluid = EthyleneGlycol constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";
   /*
-                package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
-                */
+                  package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
+                  */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode=2;
-/*
-    parameter Real SOC_tank1_start = 0;
-    parameter SI.Temperature T_tank1_start = from_degC(565);
-    parameter Real SOC_tank2_start = 1;
-    parameter SI.Temperature T_tank2_start = from_degC(279);
-    parameter Real SOC_tank3_start = 1;
-    parameter SI.Temperature T_tank3_start = from_degC(25.1);
-    parameter Real SOC_tank4_start = 0;
-    parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-   */
-
+  parameter Integer Mode = 2;
+  /*
+      parameter Real SOC_tank1_start = 0;
+      parameter SI.Temperature T_tank1_start = from_degC(565);
+      parameter Real SOC_tank2_start = 1;
+      parameter SI.Temperature T_tank2_start = from_degC(279);
+      parameter Real SOC_tank3_start = 1;
+      parameter SI.Temperature T_tank3_start = from_degC(25.1);
+      parameter Real SOC_tank4_start = 0;
+      parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+     */
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -52,7 +51,6 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 1;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 273.15;
   parameter SI.Temperature T_0_MMA = 276.69;
@@ -73,7 +71,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   //SI.Pressure p_fix_charge(start = 100000) "fixed pressure point through expansion vessel at p_4";
   SI.Energy Elec_energy_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_elec_charge(displayUnit = "MW");
-  parameter Real m_dot_div_p_set_charge=0.0076;
+  parameter Real m_dot_div_p_set_charge = 0.0076;
   Real m_dot_div_p_charge(start = 0.0076);
   parameter Real n_CO_charge_start = 3000;
   parameter SI.Power P_set_charge(displayUnit = "MW") = 170*1000*1000;
@@ -97,7 +95,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   SI.HeatFlowRate Q_dot_hightemp_res(displayUnit = "MW");
   Real m_dot_div_p(start = 0.0076);
   //parameter Real m_dot_div_p_set = 0.007598;
-  parameter Real m_dot_div_p_set = 0.00381; 
+  parameter Real m_dot_div_p_set = 0.00381;
   parameter Real n_CO_start = 3000;
   parameter SI.Power P_set(displayUnit = "MW") = -60*1000*1000;
   //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
@@ -323,7 +321,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   WorkingFluid.ThermodynamicState outlet_coldside_HEX3_charge(p(start = 100000), T(start = T_tank3_nom), phase(start = 1)) "Medium properties ";
   //-------------HEX rejection charge//
   parameter Real NTU_HEXrej_charge = 7.8 "Number of transfer units of rejection HEX";
-  WorkingFluid.ThermodynamicState state_amb_air(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
+  WorkingFluid.ThermodynamicState state_amb_air(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
   //cold-side
   Real C_cold_HEXrej_charge "Heat capacity rate of cold side of rejection HEX ";
   SI.MassFlowRate m_dot_rej_charge "required mass flow rate to cool down to fixed T_2";
@@ -351,7 +349,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   parameter Real beta_CO_nom_charge = 4.592 "design compression ratio";
   parameter Real n_CO_nom_charge = 3000 "design speed";
   // parameter SI.Efficiency eta_is_CO_nom_charge = 0.90535 "design isentropic efficiency";
-  parameter SI.Efficiency eta_is_CO_nom_charge = 0.903175 "design isentropic efficiency";
+  parameter SI.Efficiency eta_is_CO_nom_charge = 0.90385 "design isentropic efficiency";
   SI.Temperature T_4_nom_charge = from_degC(267.533) "state 4 temperature";
   SI.Pressure p_4_nom_charge = p_fix_charge "state 4 pressure";
   //actual
@@ -608,7 +606,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   parameter SI.Pressure p_3_nom = 572336*2 "design turbine inlet pressure";
   //actual
   Real beta_TU(start = beta_TU_nom) "absolute expansion ratio";
- //Real beta_TU= beta_TU_nom "absolute expansion ratio";
+  //Real beta_TU= beta_TU_nom "absolute expansion ratio";
   Real n_TU(start = 3000) "actual speed";
   SI.Efficiency eta_is_TU "absolute isentropic turbine efficiency";
   //reduced
@@ -631,7 +629,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
   SI.Temperature T_1_a = from_degC(34.105) "outlet temperature after rejec";
   //fixed pressure point charge
   //SI.Pressure p_1 = p_fix "state 1 pressure";
-  SI.Pressure p_1(start=100000*2);
+  SI.Pressure p_1(start = 100000*2);
   //STATE 1 a discharge
   SI.Pressure p_1_a "pressure after Heat rejection ";
   WorkingFluid.ThermodynamicState state_1_a "thermodynamic state after Heat rejection ";
@@ -701,22 +699,16 @@ model DynamicMalta_charge_discharge_inventorycontrol_double_pressure
     Placement(transformation(origin = {82, -84}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
-
-
-      Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 500000, yMin = 30000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 200000, k = 50000, Ti = 0.001, wp = 0.9, wd = 0.2, Td = 0.1)  annotation(
-        Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
-
-
-      Modelica.Blocks.Continuous.LimPID PID_inventory_mdot(initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 762, yMax = 900, yMin = 200, k = 0.0001, wp = 0.9, wd = 0.2, Ti = 1, Td = 0.1)  annotation(
-        Placement(transformation(origin = {-50, 28}, extent = {{-10, -10}, {10, 10}})));
-
-
-/*
-  Modelica.Blocks.Continuous.LimPID PID_inventory_charge(k = 1000000, Ti = 0.01, Td = 0.1, yMax = 300000, yMin = 25000, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000)  annotation(
-    Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
- Modelica.Blocks.Continuous.LimPID PID_inventory_mdot_charge(k = 0.0001, Ti = 20, Td = 0.1, yMax = 900, yMin = 200, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 766)  annotation(
-    Placement(transformation(origin = {36, 32}, extent = {{-10, -10}, {10, 10}})));
-    */
+  Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 500000, yMin = 30000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 200000, k = 50000, Ti = 0.001, wp = 0.9, wd = 0.2, Td = 0.1) annotation(
+    Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Continuous.LimPID PID_inventory_mdot(initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 762, yMax = 900, yMin = 200, k = 0.0001, wp = 0.9, wd = 0.2, Ti = 1, Td = 0.1) annotation(
+    Placement(transformation(origin = {-50, 28}, extent = {{-10, -10}, {10, 10}})));
+  /*
+    Modelica.Blocks.Continuous.LimPID PID_inventory_charge(k = 1000000, Ti = 0.01, Td = 0.1, yMax = 300000, yMin = 25000, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000)  annotation(
+      Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
+   Modelica.Blocks.Continuous.LimPID PID_inventory_mdot_charge(k = 0.0001, Ti = 20, Td = 0.1, yMax = 900, yMin = 200, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 766)  annotation(
+      Placement(transformation(origin = {36, 32}, extent = {{-10, -10}, {10, 10}})));
+      */
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -739,8 +731,7 @@ initial equation
   m_tank4 = m_tank4_start;
   T_tank4 = T_tank4_start;
 //der_exergy_total_tanks_charge=0;
- //p_fix=100000;
-
+//p_fix=100000;
 equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
 /*
@@ -755,23 +746,15 @@ equation
   m_dot_div_p_charge= PID_inventory_charge.u_m;
   p_1_charge=PID_inventory_charge.y;
 */
-
 //PID discharge
-
-  P_set=PID_inventory_mdot.u_s;
-  P_mech_shaft= PID_inventory_mdot.u_m;
-  m_dot_WF=PID_inventory_mdot.y; 
-
-
-
-  m_dot_div_p_set=PID_inventory.u_s;
-  m_dot_div_p= PID_inventory.u_m;
-  p_1=PID_inventory.y;
-
+  P_set = PID_inventory_mdot.u_s;
+  P_mech_shaft = PID_inventory_mdot.u_m;
+  m_dot_WF = PID_inventory_mdot.y;
+  m_dot_div_p_set = PID_inventory.u_s;
+  m_dot_div_p = PID_inventory.u_m;
+  p_1 = PID_inventory.y;
 //When discharge PID is turned off
 //m_dot_WF = 700 "mass flow rate";
-
-
   P_elec_charge = P_mech_shaft_charge;
 //not final eq
   P_elec = P_mech_shaft;
@@ -971,7 +954,7 @@ equation
   beta_CO_red_charge_min = 0.44008400621740806*(G_CO_red_charge)^2 + 0.15193846169229142*G_CO_red_charge + 0.1260521481189032;
   beta_CO_red_charge_max = -0.3505543472709579*(G_CO_red_charge)^2 + 1.6961020320713247*G_CO_red_charge - 0.17150246895420682;
 //-------------EXPANDER CHARGE//
-  n_TU_charge=n_CO_charge;
+  n_TU_charge = n_CO_charge;
 //parameters
   alpha_charge = sqrt(1.4 - 0.4*n_TU_red_charge);
 //reduced values expander
@@ -1115,7 +1098,7 @@ equation
   P_loss_irr_HEX3_charge = T0*((m_dot_WF_charge*(s_4_a_charge - s_1_charge)) + (m_dot_methanol_HEX3_charge*(outlet_hotside_HEX3_charge.s - coldliq_tank3_state.s)));
   der(E_loss_irr_HEX3_charge) = P_loss_irr_HEX3_charge;
 //-------------HEX 4 rejection charge//
-  state_amb_air = WorkingFluid.setState_pT(1001315, T_amb);
+  state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
   C_hot_HEXrej_charge = m_dot_WF_charge*WorkingFluid.specificHeatCapacityCp(state_2_charge);
   C_min_HEXrej_charge = C_hot_HEXrej_charge;
   C_cold_HEXrej_charge = C_max_HEXrej_charge;
@@ -1203,14 +1186,14 @@ equation
   beta_CO_red_min = 0.44008400621740806*(G_CO_red)^2 + 0.15193846169229142*G_CO_red + 0.1260521481189032;
   beta_CO_red_max = -0.3505543472709579*(G_CO_red)^2 + 1.6961020320713247*G_CO_red - 0.17150246895420682;
 //-------------EXPANDER DISCHARGE//
-  n_TU=n_CO;
+  n_TU = n_CO;
 //parameters
   alpha = sqrt(1.4 - 0.4*n_TU_red);
 //reduced values turbine
   eta_is_TU_red = eta_is_TU/eta_is_TU_nom;
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
-  //m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
+//m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
   eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
 //other turbine equations
@@ -1509,5 +1492,5 @@ equation
   end if;
   annotation(
     Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Variable speed</div><div>Heat loss enabled</div><div>turbomachinery updated with limits</div></body></html>"),
- __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_INIT,LOG_INIT_HOMOTOPY,LOG_INIT_V,LOG_STATS", s = "dassl", variableFilter = ".*"));
+    __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_INIT,LOG_INIT_HOMOTOPY,LOG_INIT_V,LOG_STATS", s = "dassl", variableFilter = ".*"));
 end DynamicMalta_charge_discharge_inventorycontrol_double_pressure;

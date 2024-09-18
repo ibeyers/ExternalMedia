@@ -3,7 +3,9 @@ within ExternalMedia.Carnot_Battery_Models.FullModels;
 model DynamicMalta_charge_discharge_inventorycontrol
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
+  import Modelica.Units.NonSI;  
   import Modelica.Units.Conversions.from_degC;
+  import Modelica.ComplexMath;   
   //import Constants
   import Modelica.Constants.pi;
   import Modelica.Constants.g_n;
@@ -55,8 +57,9 @@ model DynamicMalta_charge_discharge_inventorycontrol
 
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 273.15;
-  parameter SI.Temperature T_0_MMA = 276.69;
-  parameter SI.Temperature T_amb = from_degC(25);
+  parameter SI.Temperature T_amb = T0;
+  WorkingFluid.ThermodynamicState state_amb_air(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";  
+  
   //-------------Tanks//
   SI.Energy exergy_total_tanks(displayUnit = "MWh");
   SI.Energy int_energy_total_tanks(displayUnit = "MWh");
@@ -96,7 +99,7 @@ model DynamicMalta_charge_discharge_inventorycontrol
   Real m_dot_div_p(start = 0.007585);
   parameter Real m_dot_div_p_set = 0.00759;  
   parameter Real n_CO_start = 3000;
-  parameter SI.Power P_set(displayUnit = "MW") = -50*1000*1000;
+  parameter SI.Power P_set(displayUnit = "MW") = -100*1000*1000;
   //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
   SI.Energy exergy_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr(displayUnit = "MW");
@@ -319,22 +322,7 @@ model DynamicMalta_charge_discharge_inventorycontrol
   ColdTESLiquid.ThermodynamicState outlet_hotside_HEX3_charge(p(start = 101325), T(start = T_tank4_nom), phase(start = 1)) "Medium properties ";
   WorkingFluid.ThermodynamicState outlet_coldside_HEX3_charge(p(start = 100000), T(start = T_tank3_nom), phase(start = 1)) "Medium properties ";
   //-------------HEX rejection charge//
-  parameter Real NTU_HEXrej_charge = 7.8 "Number of transfer units of rejection HEX";
-  WorkingFluid.ThermodynamicState state_amb_air(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
-  //cold-side
-  Real C_cold_HEXrej_charge "Heat capacity rate of cold side of rejection HEX ";
-  SI.MassFlowRate m_dot_rej_charge "required mass flow rate to cool down to fixed T_2";
-  //hot-side
-  Real C_hot_HEXrej_charge "Heat capacity rate of hot side of rejection HEX";
-  //variables for effectiveness
-  Real C_min_HEXrej_charge;
-  Real C_max_HEXrej_charge;
-  Real C_r_HEXrej_charge;
-  Real eff_HEXrej_charge(start = 0.99) "effectiveness of rej HEX";
-  SI.HeatFlowRate Q_dot_max_HEXrej_charge(displayUnit = "MW");
   SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");
-  SI.SpecificEnthalpy h_hot_out_HEXrej_charge(start = 431395);
-  WorkingFluid.ThermodynamicState outlet_hotside_HEXrej_charge(p(start = p_2_a_nom_charge), T(start = from_degC(20)));
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   SI.Energy E_loss_irr_HEXrej_charge(displayUnit = "MWh", start = 0, fixed = true);
   //-------------COMPRESSOR CHARGE//
@@ -547,25 +535,7 @@ model DynamicMalta_charge_discharge_inventorycontrol
   SI.Power P_loss_irr_HEX3(displayUnit = "MW");
   SI.Energy E_loss_irr_HEX3(displayUnit = "MWh", start = 0, fixed = true);
   //-------------HEX 4 rejection discharge//
-  parameter SI.Temperature T_rej_fluid_inlet = from_degC(28);
-  parameter SI.Pressure p_rej_fluid_inlet = 1001315;
-  parameter Real NTU_HEXrej = 7.8 "Number of transfer units of rejection HEX";
-  RejectionHeatTransferFluid.ThermodynamicState state_rej_inlet(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec inlet";
-  //hot-side
-  Real C_hot_HEXrej "Heat capacity rate of hot side of rejection HEX";
-  //variables for effectiveness
-  Real C_min_HEXrej;
-  Real C_r_HEXrej;
-  //cold-side
-  Real C_cold_HEXrej "Heat capacity rate of cold side of rejection HEX ";
-  SI.MassFlowRate m_dot_rej "required mass flow rate to cool down to fixed T_1_a";
-  Real C_max_HEXrej;
-  Real eff_HEXrej(start = 0.99) "effectiveness of rej HEX";
-  //source Farres-Artunez Dissertation
-  SI.HeatFlowRate Q_dot_max_HEXrej(displayUnit = "MW");
   SI.HeatFlowRate Q_dot_HEXrej(displayUnit = "MW");
-  SI.SpecificEnthalpy h_hot_out_HEXrej(start = 431395);
-  WorkingFluid.ThermodynamicState outlet_hotside_HEXrej(p(start = 101653), T(start = from_degC(32.192)));
   SI.Power P_loss_irr_HEXrej(displayUnit = "MW");
   SI.Energy E_loss_irr_HEXrej(displayUnit = "MWh", start = 0, fixed = true);
   //-------------COMPRESSOR DISCHARGE/
@@ -688,6 +658,138 @@ model DynamicMalta_charge_discharge_inventorycontrol
   WorkingFluid.ThermodynamicState state_4_a "thermodynamic state of turbine-side recuperation outlet";
   WorkingFluid.SpecificEnthalpy h_4_a "turbine-side recuperation outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_a "turbine-side recuperation outlet spec. entropy";
+  
+    
+  //------------------ELECTRICAL MACHINERY 
+  //------------------TRANSFORMER  
+  //transformer parameters
+  parameter SI.ApparentPower S_TR_nom(displayUnit = "MVA") = 208*1000*1000;
+  parameter SI.Voltage U_TR_HV_nom(displayUnit = "kV") = 220*1000 "RMS voltage of the high voltage side (fixed by upper grid), line-to-line";
+  parameter SI.Voltage U_TR_LV_nom(displayUnit = "kV") = 15750 "RMS voltage of the low voltage side, line-to-line";
+  parameter Real a = U_TR_HV_nom/U_TR_LV_nom "turns ratio";
+  parameter Real u_TR_ohmic_OC = 0.33604996008458077;
+  parameter Real i_TR_OC = 0.32272375619545934;
+  parameter Real P_TR_loss_OC_div_S_TR_nom = 0.06121076111169815;
+  parameter SI.Power P_TR_loss_OC(displayUnit = "kW") = (P_TR_loss_OC_div_S_TR_nom/100)*S_TR_nom;
+  parameter Real u_TR_SC = 11.875135026230133;
+  parameter SI.Current I_TR_max = 537.638 "maximum transformer current";  
+  //connection point set parameters
+  parameter SI.Voltage U_TR_set=220*1000;
+  parameter SI.Angle phi_TR_set=0;
+  parameter SI.ReactivePower Q_TR_set=-50*1000*1000;
+  SI.Angle phi_U_HV(start = 0) "Phase of voltage at high-voltage side of transformer";
+  SI.Angle phi_U_HV_min_I_HV "Phase shift between voltage and current high-voltage side of transformer";
+  SI.Angle phi_I_HV "Phase of current at high-voltage side of transformer";  
+  Real pf_TR_HV "Power factor at high-voltage side of transformer";
+  //whole transformer
+  Complex S_delta;
+  SI.Power P_TR_loss(displayUnit = "kW");
+  SI.Power P_TR_ohmic_loss_LV(displayUnit = "kW");
+  SI.Power P_TR_ohmic_loss_HV(displayUnit = "kW");
+  SI.Power P_TR_iron_loss(displayUnit = "kW");
+  SI.Energy E_TR_loss(displayUnit = "MWh", start = 0, fixed = true);
+  SI.ReactivePower Q_req(displayUnit = "Mvar", start = (S_TR_nom*u_TR_SC/100));
+  Real eta_transformer(start = 0.995);
+  //high voltage side
+  SI.Impedance Z_TR_HV;
+  SI.ReactivePower Q_TR_HV(displayUnit = "Mvar");
+  SI.Power P_TR_HV(displayUnit = "MW");
+  Complex S_TR_HV;
+  SI.ApparentPower S_TR_HV_abs(displayUnit = "MVA", start = S_TR_nom);
+  SI.Voltage U_TR_HV_phase(start= U_TR_HV_nom/sqrt(3)) "phase voltage of reference phase";
+  SI.ComplexVoltage U_TR_HV(re(start = U_TR_HV_nom), im(start = 0)) "complex phase voltage of reference phase"; 
+  //Current I_TR_HV_nom;
+  SI.ComplexCurrent I_TR_HV;
+  SI.ComplexCurrent I_mag;
+  SI.ComplexVoltage U_TR_h_HV;
+  Complex Z_TR_h;
+  SI.Resistance R_TR_HV;
+  SI.Reactance X_TR_HV;
+  SI.Current I_TR_HV_abs(start = S_TR_nom/(U_TR_HV_nom*3));
+  //low voltage side
+  SI.ComplexCurrent I_TR_LV_transferred;
+  SI.ComplexVoltage U_TR_LV_transferred;
+  SI.ComplexCurrent I_TR_LV;
+  SI.ComplexVoltage U_TR_LV(re(start = U_TR_LV_nom)) "phase voltage of reference phase";
+  Complex S_TR_LV;
+  SI.ApparentPower S_TR_LV_abs(displayUnit = "MVA");
+  SI.Power P_TR_LV(displayUnit = "MW");
+  SI.ReactivePower Q_TR_LV(displayUnit = "Mvar");
+  SI.Resistance R_TR_LV;
+  SI.Reactance X_TR_LV;
+  SI.Resistance R_TR_LV_transferred;
+  SI.Reactance X_TR_LV_transferred;
+  SI.Impedance Z_TR_OC_HV;
+  SI.Resistance R_TR_FE_HV;
+  SI.Reactance X_TR_h_HV;
+  
+  //------------------SYNCHRONOUS MACHINE  
+  //parameters
+  parameter SI.ApparentPower S_SM_nom(displayUnit = "MVA") = 208*1000*1000;
+  parameter SI.Voltage U_SM_ST_nom(displayUnit = "kV") = 15.75*1000 "RMS voltage of the high voltage side";
+  parameter SI.Frequency f = 50 " input frequency at stator";
+  parameter Integer N_p = 1 "number of pole pairs";
+  parameter NonSI.AngularVelocity_rpm n_SM_nom = 3000 "nominal synchronous speed in rpm";
+  //geometry
+  parameter SI.Diameter d_RO = 0.92 "Rotor diameter";
+  parameter SI.Length l_FE = 4.715853752596681 "Rotor length";
+  parameter SI.Mass m_ST_FE_teeth = 10875.044312382426 "iron mass of stator teeth";
+  parameter SI.Mass m_ST_FE_yoke =108758.707701592 "iron mass of stator yoke";
+  parameter Real tau_p = 1.4451326206513049 "pole pitch";
+  //Equivalent circuit parameters  
+  parameter SI.Inductance L_sigma_ST =0.0011957997612770178;
+  parameter SI.Resistance R_ST = 0.005963040865384616;
+  parameter SI.Inductance L_h = 0.006776198647236435;
+  parameter SI.Inductance L_d = 0.007971998408513453;  
+ parameter Integer N_FD = 72 "number of exitation field windings";  
+ parameter Integer N_ST = 11 "number of stator windings";
+  // losses
+  parameter Real k_schuisky =5 "experimental factor for correlation of Schuisky";
+  parameter Real k_additional = 0.001 "factor for additional losses";
+  parameter SI.Resistance R_FD =0.13112806419264864 "resistance in excitation windings";  
+  parameter Real P10 = 1.3 "power loss factor in W/kg";  
+  parameter Real k_Fe_stator_yoke = 1.3 "correction factor for harmonics";
+  parameter Real k_Fe_stator_teeth = 1.7 "correction factor for harmonics";  
+  parameter SI.MagneticFluxDensity B_ST_yoke = 1.35 "flux density in stator yoke";
+  parameter SI.MagneticFluxDensity B_ST_teeth = 1.75 "flux density in stator teeth";
+  //variables
+  //energy
+  Real eta_SM(start = 0.988);
+  SI.Energy E_SM_loss(displayUnit = "MWh", start = 0, fixed = true);  
+  //stator-side variables
+  SI.Power Q_SM_ST(displayUnit = "MW");    
+  SI.ComplexVoltage U_SM_ST(re(start = U_SM_ST_nom/sqrt(3))); //per phase value!
+  SI.Power P_SM_ST(displayUnit = "MW");
+  Complex S_SM_ST;
+  SI.ComplexCurrent I_SM_ST "stator side complex current";  
+  //air-gap  
+  SI.ComplexVoltage U_SM_h(re(start = U_SM_ST_nom/sqrt(3)));  
+  Complex S_SM_h; 
+  SI.Power P_airgap(displayUnit = "MW");  
+  //excitation
+  SI.ComplexVoltage U_P(re(start = U_SM_ST_nom/sqrt(3)));
+  SI.ComplexCurrent I_FD_ref "excitation current, referred to stator side";  
+  SI.Voltage U_FD "excitation voltage";
+  SI.Power P_excitation(displayUnit = "MW") "power required for DC excitation";
+  SI.Current I_FD(start = 900) "actual excitation current, DC";
+  //equivalent circuit elements
+  SI.Reactance X_sigma_ST;
+  SI.Reactance X_h;
+  SI.Reactance X_d;
+  SI.Resistance R_SM_ST=0.005963040865384616;
+  //mechanical  
+  NonSI.AngularVelocity_rpm n_RO "rotor speed";
+  SI.AngularVelocity omega_SM;  
+  SI.Power P_mech_RO(displayUnit = "MW");
+  //losses
+  SI.Power P_SM_loss(displayUnit = "MW") "total losses";
+  SI.Velocity v_RO "rotor perimeter speed";
+  SI.Power P_windage_ventilation(displayUnit = "MW") "losses due to windage and ventilation";
+  SI.Power P_additional(displayUnit = "MW") "additional losses";
+  SI.Power P_FE_ST_teeth(displayUnit = "MW") "iron losses in stator teeth";
+  SI.Power P_FE_ST_yoke(displayUnit = "MW") "iron losses in stator yoke";
+  SI.Power P_FE(displayUnit = "MW") "total iron losses";
+
   Modelica.Blocks.Continuous.SecondOrder T4_a_guess_control(D = 0.4, w = 0.5) annotation(
     Placement(transformation(origin = {-74, -40}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control_discharge(w = 0.5, D = 0.4) annotation(
@@ -738,10 +840,11 @@ initial equation
 
 equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
-
+  state_amb_air = WorkingFluid.setState_pT(1001315, T_amb);
 //PID charge
 /*
-  P_set_charge=PID_inventory_mdot_charge.u_s;
+  //P_set_charge=PID_inventory_mdot_charge.u_s;
+  P_mech_RO=PID_inventory_mdot_charge.u_s;
   P_mech_shaft_charge= PID_inventory_mdot_charge.u_m;
   m_dot_WF_charge=PID_inventory_mdot_charge.y; 
 
@@ -759,7 +862,8 @@ equation
 
 //PID discharge
 
-  P_set=PID_inventory_mdot.u_s;
+ // P_set=PID_inventory_mdot.u_s;
+ P_mech_RO=PID_inventory_mdot.u_s;
   P_mech_shaft= PID_inventory_mdot.u_m;
   m_dot_WF=PID_inventory_mdot.y; 
 
@@ -803,14 +907,41 @@ equation
   if Mode == 1 then
     der(Elec_energy_charge) = P_elec_charge;
     der(Elec_energy_discharge) = 0;
+    Q_TR_HV = Q_TR_set;    
+    eta_transformer = abs(P_TR_LV)/(abs(P_TR_LV) + P_TR_loss);
+    I_TR_HV + I_TR_LV_transferred = I_mag;       
+    P_additional= k_additional*abs(P_mech_RO);
+    P_SM_loss = abs(P_SM_ST)-abs(P_mech_RO);
+    P_mech_RO=P_airgap + P_windage_ventilation + P_additional+ P_FE+ P_excitation;
+    S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
+    U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
+    eta_SM=abs(P_mech_RO)/abs(P_SM_ST);
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = P_elec;
+    Q_TR_HV = Q_TR_set;  
+    eta_transformer = abs(P_TR_HV)/(abs(P_TR_HV) + P_TR_loss);
+    I_TR_HV + I_TR_LV_transferred = I_mag;     
+    P_additional=k_additional*abs(P_mech_RO);  //change  
+    P_SM_loss = abs(P_mech_RO)-abs(P_SM_ST);  
+    P_mech_RO =P_airgap -(P_windage_ventilation + P_additional+ P_FE+ P_excitation);
+    S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
+    U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
+    eta_SM=abs(P_SM_ST)/abs(P_mech_RO);
 //MODE 0 HOLD
   else
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = 0;
+    Q_TR_HV = 0;    
+    eta_transformer = 0; 
+    I_TR_HV + I_TR_LV_transferred = Complex(0, 0);  
+    P_mech_RO=0;      
+    P_additional=0;
+    P_SM_loss=0;
+    I_SM_ST = Complex(0, 0);    
+    U_P = Complex(0, 0);    
+    eta_SM = 0;
   end if;
 //--------------------------EQUATIONS TANKS-----------------------------//
 //-------------TANK 1//
@@ -1115,19 +1246,7 @@ equation
   P_loss_irr_HEX3_charge = T0*((m_dot_WF_charge*(s_4_a_charge - s_1_charge)) + (m_dot_methanol_HEX3_charge*(outlet_hotside_HEX3_charge.s - coldliq_tank3_state.s)));
   der(E_loss_irr_HEX3_charge) = P_loss_irr_HEX3_charge;
 //-------------HEX 4 rejection charge//
-  state_amb_air = WorkingFluid.setState_pT(1001315, T_amb);
-  C_hot_HEXrej_charge = m_dot_WF_charge*WorkingFluid.specificHeatCapacityCp(state_2_charge);
-  C_min_HEXrej_charge = C_hot_HEXrej_charge;
-  C_cold_HEXrej_charge = C_max_HEXrej_charge;
-  C_hot_HEXrej_charge*2 = C_cold_HEXrej_charge;
-  C_cold_HEXrej_charge = m_dot_rej_charge*WorkingFluid.specificHeatCapacityCp(state_amb_air);
-  C_r_HEXrej_charge = C_min_HEXrej_charge/C_max_HEXrej_charge;
-  Q_dot_max_HEXrej_charge = C_min_HEXrej_charge*(T_2_charge - T_amb);
-  eff_HEXrej_charge = (1 - exp(-NTU_HEXrej_charge*(1 - C_r_HEXrej_charge)))/(1 - C_r_HEXrej_charge*exp(-NTU_HEXrej_charge*(1 - C_r_HEXrej_charge)));
-  Q_dot_HEXrej_charge = eff_HEXrej_charge*Q_dot_max_HEXrej_charge;
-//hot side energy balance
-  outlet_hotside_HEXrej_charge = WorkingFluid.setState_ph(p_2_a_charge, h_hot_out_HEXrej_charge);
-  Q_dot_HEXrej_charge = (h_2_charge - h_hot_out_HEXrej_charge)*m_dot_WF_charge;
+  Q_dot_HEXrej_charge = (h_2_charge - h_2_a_charge)*m_dot_WF_charge;
 //irrev
   P_loss_irr_HEXrej_charge = T0*((m_dot_WF_charge*(s_2_a_charge - s_2_charge - ((h_2_a_charge - h_2_charge)/T0))));
   der(E_loss_irr_HEXrej_charge) = P_loss_irr_HEXrej_charge;
@@ -1356,23 +1475,11 @@ equation
   outlet_coldside_HEX3 = ColdTESLiquid.setState_ph(p_tank3_nom, h_cold_out_HEX3);
   T_1 = outlet_hotside_HEX3.T;
 //irrev
-  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T_0_MMA*(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s));
+  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T0*(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s));
   der(E_loss_irr_HEX3) = P_loss_irr_HEX3;
 //-------------HEX 4 rejection DISCHARGE//
   p_4_a = p_1_a;
-  state_rej_inlet = RejectionHeatTransferFluid.setState_pT(p_rej_fluid_inlet, T_rej_fluid_inlet);
-  C_hot_HEXrej = m_dot_WF*WorkingFluid.specificHeatCapacityCp(state_4_a);
-  C_min_HEXrej = C_hot_HEXrej;
-  C_min_HEXrej*1.28 = C_max_HEXrej;
-  eff_HEXrej = (1 - exp(-NTU_HEXrej*(1 - C_r_HEXrej)))/(1 - C_r_HEXrej*exp(-NTU_HEXrej*(1 - C_r_HEXrej)));
-  C_cold_HEXrej = C_max_HEXrej;
-  C_cold_HEXrej = m_dot_rej*RejectionHeatTransferFluid.specificHeatCapacityCp(state_rej_inlet);
-  C_r_HEXrej = C_min_HEXrej/C_max_HEXrej;
-  Q_dot_max_HEXrej = C_min_HEXrej*(T_4_a - T_rej_fluid_inlet);
-  Q_dot_HEXrej = eff_HEXrej*Q_dot_max_HEXrej;
-//hot side energy balance
-  outlet_hotside_HEXrej = WorkingFluid.setState_ph(p_1_a, h_hot_out_HEXrej);
-  Q_dot_HEXrej = (h_4_a - h_hot_out_HEXrej)*m_dot_WF;
+  Q_dot_HEXrej = (h_4_a - h_1_a)*m_dot_WF;
 //irrev
   P_loss_irr_HEXrej = T0*((m_dot_WF*(s_1_a - s_4_a - ((h_1_a - h_4_a)/T0))));
   der(E_loss_irr_HEXrej) = P_loss_irr_HEXrej;
@@ -1426,6 +1533,86 @@ equation
   state_4_a = WorkingFluid.setState_pT(p_4_a, T_4_a);
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
+  
+//------------------ELECTRICAL MACHINERY 
+//------------------TRANSFORMER
+//connection point to grid
+  phi_U_HV = phi_TR_set;
+  U_TR_HV_phase= U_TR_set/sqrt(3) "phase voltage of reference phase";
+  P_TR_HV=P_set;
+  U_TR_HV = Complex(U_TR_HV_phase*cos(phi_U_HV), U_TR_HV_phase*sin(phi_U_HV));
+  phi_U_HV_min_I_HV = phi_I_HV - phi_U_HV;
+  pf_TR_HV = cos(ComplexMath.arg(Complex(P_TR_HV, Q_TR_HV)));
+  phi_U_HV_min_I_HV = ComplexMath.arg(Complex(P_TR_HV, Q_TR_HV));
+//transformer parameters
+  Z_TR_HV = (((u_TR_SC/100)*U_TR_HV_nom^2)/S_TR_nom)/2;  //OedingOswald eq 8.3
+  R_TR_HV = ((u_TR_ohmic_OC/100)*U_TR_HV_nom^2/S_TR_nom)/2;  //OedingOswald eq 8.4
+  X_TR_HV = sqrt(Z_TR_HV^2 - R_TR_HV^2);
+  R_TR_LV_transferred = R_TR_HV;
+  X_TR_LV_transferred = X_TR_HV;
+  Z_TR_OC_HV = (100/(i_TR_OC))*U_TR_HV_nom^2/S_TR_nom;
+  //OedingOswald eq 8.1
+  R_TR_FE_HV = U_TR_HV_nom^2/(P_TR_loss_OC);
+  //OedingOswald eq 8.2a
+  X_TR_h_HV = (R_TR_FE_HV*Z_TR_OC_HV)/sqrt(R_TR_FE_HV^2 - Z_TR_OC_HV^2);
+  //OedingOswald eq 8.2b
+//high voltage
+  S_TR_HV = Complex(P_TR_HV, Q_TR_HV);
+  S_TR_HV = 3*U_TR_HV*ComplexMath.conj(I_TR_HV);
+  U_TR_HV = Complex(R_TR_HV, X_TR_HV)*I_TR_HV + U_TR_h_HV;
+  U_TR_h_HV = ((Complex(R_TR_FE_HV, 0)*Complex(0, X_TR_h_HV))/(Complex(R_TR_FE_HV, 0) + Complex(0, X_TR_h_HV)))*I_mag;
+  Z_TR_h=((Complex(R_TR_FE_HV, 0)*Complex(0, X_TR_h_HV))/(Complex(R_TR_FE_HV, 0) + Complex(0, X_TR_h_HV)));
+  I_TR_HV_abs = ComplexMath.abs(I_TR_HV);
+//low voltage
+  R_TR_LV_transferred = a^2*R_TR_LV;
+  X_TR_LV_transferred = a^2*X_TR_LV;
+  U_TR_LV_transferred = Complex(R_TR_LV_transferred, X_TR_LV_transferred)*I_TR_LV_transferred + U_TR_h_HV;
+  I_TR_LV_transferred = I_TR_LV/a;
+  U_TR_LV_transferred = a*U_TR_LV;
+  S_TR_LV =3*U_TR_LV*ComplexMath.conj(I_TR_LV);
+  S_delta = S_TR_HV + S_TR_LV;
+  S_delta.re = P_TR_loss;
+  S_delta.im = Q_req;
+  S_TR_LV.re = P_TR_LV;
+  S_TR_LV.im = Q_TR_LV;
+  S_TR_HV_abs = ComplexMath.abs(S_TR_HV);
+  S_TR_LV_abs = ComplexMath.abs(S_TR_LV);
+//losses
+  P_TR_ohmic_loss_LV = 3*ComplexMath.abs(I_TR_LV)^2*R_TR_LV;
+  P_TR_ohmic_loss_HV = 3*ComplexMath.abs(I_TR_HV)^2*R_TR_HV;
+  P_TR_iron_loss = P_TR_loss - P_TR_ohmic_loss_LV - P_TR_ohmic_loss_HV;
+  der(E_TR_loss) = P_TR_loss;
+
+//------------------SYNCHRONOUS MACHINE  
+//general
+  omega_SM = 2*pi*f;
+  N_p*n_RO = f*60;
+//equivalent circuit elements
+  X_h = omega_SM*L_h;
+  X_d = omega_SM*L_d;
+  X_sigma_ST = omega_SM*L_sigma_ST;  
+  //Trafo side Interfaces
+  0 = Q_TR_LV + Q_SM_ST;  
+  U_SM_ST=U_TR_LV;
+  0=P_TR_LV+P_SM_ST;
+  S_SM_ST = Complex(P_SM_ST, Q_SM_ST);  
+  //airgap
+ U_SM_ST = Complex(R_SM_ST, X_sigma_ST)*I_SM_ST + U_SM_h;
+    S_SM_h = 3*U_SM_h*ComplexMath.conj(I_SM_ST);
+    P_airgap=S_SM_h.re;
+    //excitation
+  U_P = Complex(0, 1)* X_h*I_FD_ref; //
+  ComplexMath.abs(I_FD_ref) = I_FD*2*N_p*N_FD/(3*N_ST*0.9166); //Binder p.5/41
+  U_FD = R_FD*I_FD*3;
+  P_excitation = U_FD*I_FD;
+//losses
+  v_RO = d_RO*pi*n_RO/60;
+  P_windage_ventilation = k_schuisky*d_RO*(l_FE + 0.6*tau_p)*v_RO^2;
+  P_FE_ST_teeth = k_Fe_stator_teeth*P10*B_ST_teeth^2*m_ST_FE_teeth;
+  P_FE_ST_yoke = k_Fe_stator_yoke*P10*B_ST_yoke^2*m_ST_FE_yoke;
+  P_FE = (f/50)^1.3*(P_FE_ST_teeth + P_FE_ST_yoke);  
+//energy
+  der(E_SM_loss) = P_SM_loss;  
 //--------------------------COMPONENT MANAGEMENT--------------------------//
 //MODE 1 CHARGE
   if Mode == 1 then
