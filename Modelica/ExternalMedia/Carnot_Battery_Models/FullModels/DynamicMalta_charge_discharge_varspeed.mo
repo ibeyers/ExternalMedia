@@ -5,6 +5,7 @@ model DynamicMalta_charge_discharge_varspeed
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
   import Modelica.ComplexMath;   
+  import Modelica.Units.NonSI;    
   //import Constants
   import Modelica.Constants.pi;
   import Modelica.Constants.g_n;
@@ -33,8 +34,8 @@ model DynamicMalta_charge_discharge_varspeed
               */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode=1;
-   
+  parameter Integer Mode=2;
+   /*
   parameter Real SOC_tank1_start = 0;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 1;
@@ -43,8 +44,8 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 0;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-   
-    /*
+   */
+
       parameter Real SOC_tank1_start = 1;
       parameter SI.Temperature T_tank1_start = from_degC(565);
       parameter Real SOC_tank2_start = 0;
@@ -53,10 +54,10 @@ model DynamicMalta_charge_discharge_varspeed
       parameter SI.Temperature T_tank3_start = from_degC(25.1);
       parameter Real SOC_tank4_start = 1;
       parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-*/
+
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
-  parameter SI.Temperature T0 = 273.15;
-  parameter SI.Temperature T_amb = T0;
+  parameter SI.Temperature T0 = T_amb;
+  parameter SI.Temperature T_amb = from_degC(20);
   WorkingFluid.ThermodynamicState state_amb_air(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
   //-------------Tanks//  
   SI.Energy exergy_total_tanks(displayUnit = "MWh");  
@@ -77,10 +78,11 @@ model DynamicMalta_charge_discharge_varspeed
  // parameter Real m_dot_div_p_charge=0.0076;
   Real m_dot_div_p_charge(start=0.0076);
   parameter Real n_CO_charge_start = 3000;  
-  parameter SI.Power P_set_charge(displayUnit = "MW")=174.3*1000*1000;
+  parameter SI.Power P_set_charge(displayUnit = "MW")=178*1000*1000;
    //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
    SI.Energy exergy_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
    SI.Power P_total_loss_irr_charge(displayUnit = "MW");   
+  parameter Real hot_to_cold_mass_flow_ratio_charge=2.044;   
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -95,12 +97,14 @@ model DynamicMalta_charge_discharge_varspeed
   SI.HeatFlowRate Q_dot_hightemp_res(displayUnit = "MW");
   Real m_dot_div_p(start=0.0076);
   parameter Real n_CO_start = 3000;  
-  parameter SI.Power P_set(displayUnit = "MW")=-101.5*1000*1000;
+  parameter SI.Power P_set(displayUnit = "MW")=-100*1000*1000;
    //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
    SI.Energy exergy_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
    SI.Power P_total_loss_irr(displayUnit = "MW");         
-   
+  parameter Real hot_to_cold_mass_flow_ratio=2.044;     
   //--------------------------PARAMETERS & VARIABLES TANKS-----------------------------//
+  parameter SI.Mass m_working_solar_salt = 19386000;
+  parameter SI.Mass m_working_methanol = 9486000;
   //geometry for both solar salt tanks
   parameter SI.Diameter D_tank_solsalt = 36.104957;
   parameter SI.Height h_tank_solsalt = 12.03498;
@@ -111,8 +115,6 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Radius r_outer = D_tank_solsalt/2 + d_insulation_tank_solsalt "outer radius";
   parameter SI.Area A_W_tank_solsalt = (pi*D_tank_solsalt*h_tank_solsalt) + A_cross_tank_solsalt*2 "Total Surface Wall";
   parameter SI.Height x_tank_solsalt_min = 0.4;
-  parameter SI.Height x_tank1_solsalt_max = x_tank_solsalt_min + 10.941;
-  parameter SI.Height x_tank2_solsalt_max = x_tank_solsalt_min + 9.90;
   //geometry for both methanol tanks
   parameter SI.Diameter D_tank_coldliq = 35.5045;
   parameter SI.Height h_tank_coldliq = 11.8348;
@@ -123,17 +125,15 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Radius r_outer_coldliq = D_tank_coldliq/2 + d_insulation_tank_coldliq "outer radius";
   parameter SI.Area A_W_tank_coldliq = (pi*D_tank_coldliq*h_tank_coldliq) + A_cross_tank_coldliq*2 "Total Surface Wall";
   parameter SI.Height x_tank_coldliq_min = 0.4;
-  parameter SI.Height x_tank3_coldliq_max = x_tank_coldliq_min + 10.7589;
-  parameter SI.Height x_tank4_coldliq_max = x_tank_coldliq_min + 10.09027;
   //--------------------------TANK 1
   //nominal
   parameter SI.Temperature T_tank1_nom = from_degC(565.6);
   parameter SI.Pressure p_tank1_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank1_nom = 1730.66;
-  parameter SI.Mass m_tank1_nom = (x_tank1_solsalt_max - x_tank_solsalt_min)*A_cross_tank_solsalt*rho_tank1_nom;
+  parameter SI.Mass m_tank1_min =  x_tank_solsalt_min*A_cross_tank_solsalt*rho_tank1_nom;
   HotTESLiquid.ThermodynamicState solsalt_tank1_nom(p(start = p_tank1_nom), T(start = T_tank1_nom)) "Nominal thermodynamic state";
   //start
-  parameter SI.Mass m_tank1_start = (x_tank_solsalt_min + SOC_tank1_start*(x_tank1_solsalt_max - x_tank_solsalt_min))*A_cross_tank_solsalt*rho_tank1_nom;
+  parameter SI.Mass m_tank1_start = m_tank1_min + (SOC_tank1_start*m_working_solar_salt);
   //state variables
   SI.Mass m_tank1;
   SI.Temperature T_tank1;
@@ -157,10 +157,10 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Temperature T_tank2_nom = from_degC(271.5);
   parameter SI.Pressure p_tank2_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank2_nom = 1917.33;
-  parameter SI.Mass m_tank2_nom = (x_tank2_solsalt_max - x_tank_solsalt_min)*A_cross_tank_solsalt*rho_tank2_nom;
+  parameter SI.Mass m_tank2_min =  x_tank_solsalt_min*A_cross_tank_solsalt*rho_tank2_nom;
   HotTESLiquid.ThermodynamicState solsalt_tank2_nom(p(start = p_tank2_nom), T(start = T_tank2_nom)) "Nominal thermodynamic state";
   //start
-  parameter SI.Mass m_tank2_start = (x_tank_solsalt_min + SOC_tank2_start*(x_tank2_solsalt_max - x_tank_solsalt_min))*A_cross_tank_solsalt*rho_tank2_nom;
+  parameter SI.Mass m_tank2_start = m_tank2_min + (SOC_tank2_start*m_working_solar_salt);
   //state variables
   SI.Mass m_tank2;
   SI.Temperature T_tank2;
@@ -184,10 +184,10 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Temperature T_tank3_nom = from_degC(25.195);
   parameter SI.Pressure p_tank3_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank3_nom = 890.546;
-  parameter SI.Mass m_tank3_nom = (x_tank3_coldliq_max - x_tank_coldliq_min)*A_cross_tank_coldliq*rho_tank3_nom;
+  parameter SI.Mass m_tank3_min = x_tank_coldliq_min*A_cross_tank_coldliq*rho_tank3_nom;
   ColdTESLiquid.ThermodynamicState coldliq_tank3_nom(p(start = p_tank3_nom), T(start = T_tank3_nom)) "Nominal thermodynamic state";
   //start
-  parameter SI.Mass m_tank3_start = (x_tank_coldliq_min + SOC_tank3_start*(x_tank3_coldliq_max - x_tank_coldliq_min))*A_cross_tank_coldliq*rho_tank3_nom;
+  parameter SI.Mass m_tank3_start =m_tank3_min + (SOC_tank3_start*m_working_methanol);
   //state variables
   SI.Mass m_tank3;
   SI.Temperature T_tank3;
@@ -208,10 +208,10 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Temperature T_tank4_nom = from_degC(-59.85);
   parameter SI.Pressure p_tank4_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank4_nom = 949.56;
-  parameter SI.Mass m_tank4_nom = (x_tank4_coldliq_max - x_tank_coldliq_min)*A_cross_tank_coldliq*rho_tank4_nom;
+  parameter SI.Mass m_tank4_min = x_tank_coldliq_min*A_cross_tank_coldliq*rho_tank4_nom;
   ColdTESLiquid.ThermodynamicState coldliq_tank4_nom(p(start = p_tank4_nom), T(start = T_tank4_nom)) "Nominal thermodynamic state";
   //start
-  parameter SI.Mass m_tank4_start = (x_tank_coldliq_min + SOC_tank4_start*(x_tank4_coldliq_max - x_tank_coldliq_min))*A_cross_tank_coldliq*rho_tank4_nom;
+  parameter SI.Mass m_tank4_start =m_tank4_min + (SOC_tank4_start*m_working_methanol);
   //state variables
   SI.Mass m_tank4;
   SI.Temperature T_tank4;
@@ -720,7 +720,72 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Impedance Z_TR_OC_HV;
   SI.Resistance R_TR_FE_HV;
   SI.Reactance X_TR_h_HV;
-
+  //------------------SYNCHRONOUS MACHINE  
+  //parameters
+  parameter SI.ApparentPower S_SM_nom(displayUnit = "MVA") = 208*1000*1000;
+  parameter SI.Voltage U_SM_ST_nom(displayUnit = "kV") = 15.75*1000 "RMS voltage of the high voltage side";
+  parameter SI.Frequency f = 50 " input frequency at stator";
+  parameter Integer N_p = 1 "number of pole pairs";
+  parameter NonSI.AngularVelocity_rpm n_SM_nom = 3000 "nominal synchronous speed in rpm";
+  //geometry
+  parameter SI.Diameter d_RO = 0.92 "Rotor diameter";
+  parameter SI.Length l_FE = 4.715853752596681 "Rotor length";
+  parameter SI.Mass m_ST_FE_teeth = 10875.044312382426 "iron mass of stator teeth";
+  parameter SI.Mass m_ST_FE_yoke =108758.707701592 "iron mass of stator yoke";
+  parameter Real tau_p = 1.4451326206513049 "pole pitch";
+  //Equivalent circuit parameters  
+  parameter SI.Inductance L_sigma_ST =0.0011957997612770178;
+  parameter SI.Resistance R_ST = 0.005963040865384616;
+  parameter SI.Inductance L_h = 0.006776198647236435;
+  parameter SI.Inductance L_d = 0.007971998408513453;  
+ parameter Integer N_FD = 72 "number of exitation field windings";  
+ parameter Integer N_ST = 11 "number of stator windings";
+  // losses
+  parameter Real k_schuisky =5 "experimental factor for correlation of Schuisky";
+  parameter Real k_additional = 0.001 "factor for additional losses";
+  parameter SI.Resistance R_FD =0.13112806419264864 "resistance in excitation windings";  
+  parameter Real P10 = 1.3 "power loss factor in W/kg";  
+  parameter Real k_Fe_stator_yoke = 1.3 "correction factor for harmonics";
+  parameter Real k_Fe_stator_teeth = 1.7 "correction factor for harmonics";  
+  parameter SI.MagneticFluxDensity B_ST_yoke = 1.35 "flux density in stator yoke";
+  parameter SI.MagneticFluxDensity B_ST_teeth = 1.75 "flux density in stator teeth";
+  //variables
+  //energy
+  Real eta_SM(start = 0.988);
+  SI.Energy E_SM_loss(displayUnit = "MWh", start = 0, fixed = true);  
+  //stator-side variables
+  SI.Power Q_SM_ST(displayUnit = "MW");    
+  SI.ComplexVoltage U_SM_ST(re(start = U_SM_ST_nom/sqrt(3))); //per phase value!
+  SI.Power P_SM_ST(displayUnit = "MW");
+  Complex S_SM_ST;
+  SI.ComplexCurrent I_SM_ST "stator side complex current";  
+  //air-gap  
+  SI.ComplexVoltage U_SM_h(re(start = U_SM_ST_nom/sqrt(3)));  
+  Complex S_SM_h; 
+  SI.Power P_airgap(displayUnit = "MW");  
+  //excitation
+  SI.ComplexVoltage U_P(re(start = U_SM_ST_nom/sqrt(3)));
+  SI.ComplexCurrent I_FD_ref "excitation current, referred to stator side";  
+  SI.Voltage U_FD "excitation voltage";
+  SI.Power P_excitation(displayUnit = "MW") "power required for DC excitation";
+  SI.Current I_FD(start = 900) "actual excitation current, DC";
+  //equivalent circuit elements
+  SI.Reactance X_sigma_ST;
+  SI.Reactance X_h;
+  SI.Reactance X_d;
+  SI.Resistance R_SM_ST=0.005963040865384616;
+  //mechanical  
+  NonSI.AngularVelocity_rpm n_RO "rotor speed";
+  SI.AngularVelocity omega_SM;  
+  SI.Power P_mech_RO(displayUnit = "MW");
+  //losses
+  SI.Power P_SM_loss(displayUnit = "MW") "total losses";
+  SI.Velocity v_RO "rotor perimeter speed";
+  SI.Power P_windage_ventilation(displayUnit = "MW") "losses due to windage and ventilation";
+  SI.Power P_additional(displayUnit = "MW") "additional losses";
+  SI.Power P_FE_ST_teeth(displayUnit = "MW") "iron losses in stator teeth";
+  SI.Power P_FE_ST_yoke(displayUnit = "MW") "iron losses in stator yoke";
+  SI.Power P_FE(displayUnit = "MW") "total iron losses";
   
   Modelica.Blocks.Continuous.SecondOrder T4_a_guess_control(D = 0.4, w = 0.5) annotation(
     Placement(transformation(origin = {-74, -40}, extent = {{-10, -10}, {10, 10}})));
@@ -732,12 +797,16 @@ model DynamicMalta_charge_discharge_varspeed
     Placement(transformation(origin = {82, -84}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
+/*
 Modelica.Blocks.Continuous.LimPID PID_varspeed_charge(controllerType = Modelica.Blocks.Types.SimpleController.PID, Ti = 1, k = 0.00001, yMax = 3500, yMin = 1500, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = n_CO_charge_start, wp = 0.9, wd = 0.1)  annotation(
     Placement(transformation(origin = {4, 70}, extent = {{-10, -10}, {10, 10}})));
+ */
  Modelica.Blocks.Sources.Ramp ramp(height = -500, duration = 3500, offset = 3000, startTime = 100)  annotation(
     Placement(transformation(origin = {78, 76}, extent = {{-10, -10}, {10, 10}})));
+
  Modelica.Blocks.Continuous.LimPID PID_varspeed(controllerType = Modelica.Blocks.Types.SimpleController.PID, Ti = 1, k = -0.00001, yMax = 3500, yMin = 1500, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = n_CO_start, wp = 0.9, wd = 0.1) annotation(
     Placement(transformation(origin = {-4, 18}, extent = {{-10, -10}, {10, 10}})));
+
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -765,25 +834,22 @@ equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
   state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
   //PID charge
-  P_set_charge = PID_varspeed_charge.u_s;
+  /*
+  P_mech_RO = PID_varspeed_charge.u_s;
   P_mech_shaft_charge = PID_varspeed_charge.u_m;
   n_CO_charge = PID_varspeed_charge.y;
+  */
+  n_CO_charge=3000;
   //PID
-  P_set = PID_varspeed.u_s;
+  P_mech_RO = PID_varspeed.u_s;
   P_mech_shaft = PID_varspeed.u_m;
   n_CO = PID_varspeed.y;
-//dummy_speed=PID_varspeed.y;
-// n_CO_charge=ramp.y;
-/*
-m_dot_WF_charge=PID_inventory_control.y;
 
-*/
-
-  P_elec_charge = P_mech_shaft_charge;
-// P_mech_shaft_charge=P_set;
-//not final eq
-  P_elec = P_mech_shaft;
-//not final eq
+  //n_CO=3000;
+  
+  P_elec_charge = P_TR_HV;
+  P_elec = P_TR_HV;
+  
 //-------------SYSTEM TANKS//
   exergy_total_tanks = exergy_tank1 + exergy_tank2 + exergy_tank3 + exergy_tank4;
   int_energy_total_tanks = int_energy_tank1 + int_energy_tank2 + int_energy_tank3 + int_energy_tank4;
@@ -797,6 +863,8 @@ m_dot_WF_charge=PID_inventory_control.y;
 //der_exergy_total_tanks_charge=der(exergy_total_tanks_charge);
   der(exergy_total_loss_irr_charge) = P_total_loss_irr_charge;
   P_total_loss_irr_charge = P_loss_irr_HEX1_charge + P_loss_irr_HEX2_charge + P_loss_irr_HEX3_charge + P_loss_irr_HEXrej_charge + P_loss_irr_CO_charge + P_loss_irr_TU_charge;
+  hot_to_cold_mass_flow_ratio_charge=m_dot_solsalt_HEX1_charge/m_dot_methanol_HEX3_charge;
+  
 //-------------SYSTEM DISCHARGE//
   P_mech_shaft = P_mech_CO + P_mech_TU;
   Q_pump = -Q_dot_HEX1;
@@ -806,31 +874,50 @@ m_dot_WF_charge=PID_inventory_control.y;
 //der_exergy_total_tanks_charge=der(exergy_total_tanks_charge);
   der(exergy_total_loss_irr) = P_total_loss_irr;
   P_total_loss_irr = P_loss_irr_HEX1 + P_loss_irr_HEX2 + P_loss_irr_HEX3 + P_loss_irr_HEXrej + P_loss_irr_CO + P_loss_irr_TU;
-  
+  hot_to_cold_mass_flow_ratio=m_dot_solsalt_HEX1/m_dot_methanol_HEX3;
+    
 //MODE 1 CHARGE
   if Mode == 1 then
     der(Elec_energy_charge) = P_elec_charge;
     der(Elec_energy_discharge) = 0;
+    P_TR_HV=P_set_charge;
     Q_TR_HV = Q_TR_set;    
     eta_transformer = abs(P_TR_LV)/(abs(P_TR_LV) + P_TR_loss);
     I_TR_HV + I_TR_LV_transferred = I_mag;    
-    0=P_TR_LV+P_mech_shaft_charge;       
+    P_additional= k_additional*abs(P_mech_RO);
+    P_SM_loss = abs(P_SM_ST)-abs(P_mech_RO);
+    P_mech_RO=P_airgap - P_windage_ventilation - P_additional- P_FE- P_excitation;
+    S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
+    U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
+    eta_SM=abs(P_mech_RO)/abs(P_SM_ST);  
+     
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = P_elec;
+    P_TR_HV=P_set;    
     Q_TR_HV = Q_TR_set;  
     eta_transformer = abs(P_TR_HV)/(abs(P_TR_HV) + P_TR_loss);
     I_TR_HV + I_TR_LV_transferred = I_mag;     
-    0=P_TR_LV+P_mech_shaft;          
+    P_additional=k_additional*abs(P_mech_RO);  //change  
+    P_SM_loss = abs(P_mech_RO)-abs(P_SM_ST);  
+    P_mech_RO =P_airgap -(P_windage_ventilation + P_additional+ P_FE+ P_excitation);
+    S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
+    U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
+    eta_SM=abs(P_SM_ST)/abs(P_mech_RO);        
 //MODE 0 HOLD
   else
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = 0;
-    Q_TR_HV = 0;    
+    Q_TR_HV = 0;   
+    P_TR_HV=0;     
     eta_transformer = 0; 
     I_TR_HV + I_TR_LV_transferred = Complex(0, 0);  
-    P_TR_LV=0;           
+    P_additional=0;
+    P_SM_loss=0;
+    I_SM_ST = Complex(0, 0);    
+    U_P = Complex(0, 0);    
+    eta_SM = 0;          
   end if;
 //--------------------------EQUATIONS TANKS-----------------------------//
 //-------------TANK 1//
@@ -856,7 +943,7 @@ m_dot_WF_charge=PID_inventory_control.y;
 //energy balance
   der(m_tank1*solsalt_tank1.u) = m_out_tank1*solsalt_tank1.h + m_in_tank1*h_in_tank1 + Q_dot_to_amb_tank1;
 //states
-  SOC_tank1 = (m_tank1 - (solsalt_tank1.d*A_cross_tank_solsalt*x_tank_solsalt_min))/m_tank1_nom;
+  SOC_tank1 = (m_tank1 - m_tank1_min)/m_working_solar_salt ;
   m_tank1 = solsalt_tank1.d*A_cross_tank_solsalt*x_tank1;
   int_energy_tank1 = m_tank1*solsalt_tank1.u;
   exergy_tank1 = m_tank1*solsalt_tank1_state.cp*(T_tank1 - T_amb) - T_amb*m_tank1*solsalt_tank1_state.cp*log(T_tank1/T_amb);
@@ -892,7 +979,7 @@ m_dot_WF_charge=PID_inventory_control.y;
 //energy balance
   der(m_tank2*solsalt_tank2.u) = m_out_tank2*solsalt_tank2.h + m_in_tank2*h_in_tank2 + Q_dot_to_amb_tank2;
 //states
-  SOC_tank2 = (m_tank2 - (solsalt_tank2.d*A_cross_tank_solsalt*x_tank_solsalt_min))/m_tank2_nom;
+  SOC_tank2 = (m_tank2 - m_tank2_min)/m_working_solar_salt;
   m_tank2 = solsalt_tank2.d*A_cross_tank_solsalt*x_tank2;
   int_energy_tank2 = m_tank2*solsalt_tank2.u;
   exergy_tank2 = m_tank2*solsalt_tank2_state.cp*(T_tank2 - T_amb) - T_amb*m_tank2*solsalt_tank2_state.cp*log(T_tank2/T_amb);
@@ -928,7 +1015,7 @@ m_dot_WF_charge=PID_inventory_control.y;
 //energy balance
   der(m_tank3*coldliq_tank3.u) = m_out_tank3*coldliq_tank3.h + m_in_tank3*h_in_tank3;
 //states
-  SOC_tank3 = (m_tank3 - (coldliq_tank3.d*A_cross_tank_coldliq*x_tank_coldliq_min))/m_tank3_nom;
+  SOC_tank3 = (m_tank3 - m_tank3_min)/m_working_methanol;
   m_tank3 = coldliq_tank3.d*A_cross_tank_coldliq*x_tank3;
   int_energy_tank3 = m_tank3*coldliq_tank3.u;
   exergy_tank3 = m_tank3*coldliq_tank3_state.cp*(T_tank3 - T_amb) - T_amb*m_tank3*coldliq_tank3_state.cp*log(T_tank3/T_amb);
@@ -961,7 +1048,7 @@ m_dot_WF_charge=PID_inventory_control.y;
 //energy balance
   der(m_tank4*coldliq_tank4.u) = m_out_tank4*coldliq_tank4.h + m_in_tank4*h_in_tank4;
 //states
-  SOC_tank4 = (m_tank4 - (coldliq_tank4.d*A_cross_tank_coldliq*x_tank_coldliq_min))/m_tank4_nom;
+  SOC_tank4 = (m_tank4 - m_tank4_min)/m_working_methanol;
   m_tank4 = coldliq_tank4.d*A_cross_tank_coldliq*x_tank4;
   int_energy_tank4 = m_tank4*coldliq_tank4.u;
   exergy_tank4 = m_tank4*coldliq_tank4_state.cp*(T_tank4 - T_amb) - T_amb*m_tank4*coldliq_tank4_state.cp*log(T_tank4/T_amb);
@@ -1110,7 +1197,7 @@ m_dot_WF_charge=PID_inventory_control.y;
   C_cold_HEX3_charge = m_dot_WF_charge*cp_cold_ave_HEX3_charge;
   C_hot_HEX3_charge = C_cold_HEX3_charge;
 //balanced operation
-  m_dot_methanol_HEX3_charge = C_hot_HEX3_charge/cp_hot_ave_HEX3_charge;
+  //m_dot_methanol_HEX3_charge = C_hot_HEX3_charge/cp_hot_ave_HEX3_charge;
   C_min_HEX3_charge = min(C_cold_HEX3_charge, C_hot_HEX3_charge);
   C_max_HEX3_charge = max(C_cold_HEX3_charge, C_hot_HEX3_charge);
   C_r_HEX3_charge = C_min_HEX3_charge/C_max_HEX3_charge;
@@ -1249,7 +1336,7 @@ m_dot_WF_charge=PID_inventory_control.y;
   C_cold_HEX1 = m_dot_WF*cp_cold_ave_HEX1;
   C_hot_HEX1 = C_cold_HEX1;
 //balanced operation
-  C_hot_HEX1 = m_dot_solsalt_HEX1*cp_hot_ave_HEX1;
+  //C_hot_HEX1 = m_dot_solsalt_HEX1*cp_hot_ave_HEX1;
 //mass balance
   C_min_HEX1 = min(C_cold_HEX1, C_hot_HEX1);
   C_max_HEX1 = max(C_cold_HEX1, C_hot_HEX1);
@@ -1425,8 +1512,7 @@ m_dot_WF_charge=PID_inventory_control.y;
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
 
-   //------------------ELECTRICAL MACHINERY 
-
+  //------------------ELECTRICAL MACHINERY 
 //connection point to grid
   phi_U_HV = phi_TR_set;
   U_TR_HV_phase= U_TR_set/sqrt(3) "phase voltage of reference phase";
@@ -1473,24 +1559,54 @@ m_dot_WF_charge=PID_inventory_control.y;
   P_TR_ohmic_loss_HV = 3*ComplexMath.abs(I_TR_HV)^2*R_TR_HV;
   P_TR_iron_loss = P_TR_loss - P_TR_ohmic_loss_LV - P_TR_ohmic_loss_HV;
   der(E_TR_loss) = P_TR_loss;
-  
+//------------------SYNCHRONOUS MACHINE  
+//general
+  omega_SM = 2*pi*f;
+  N_p*n_RO = f*60;
+//equivalent circuit elements
+  X_h = omega_SM*L_h;
+  X_d = omega_SM*L_d;
+  X_sigma_ST = omega_SM*L_sigma_ST;  
+  //Trafo side Interfaces
+  0 = Q_TR_LV + Q_SM_ST;  
+  U_SM_ST=U_TR_LV;
+  0=P_TR_LV+P_SM_ST;
+  S_SM_ST = Complex(P_SM_ST, Q_SM_ST);  
+  //airgap
+ U_SM_ST = Complex(R_SM_ST, X_sigma_ST)*I_SM_ST + U_SM_h;
+    S_SM_h = 3*U_SM_h*ComplexMath.conj(I_SM_ST);
+    P_airgap=S_SM_h.re;
+    //excitation
+  U_P = Complex(0, 1)* X_h*I_FD_ref; //
+  ComplexMath.abs(I_FD_ref) = I_FD*2*N_p*N_FD/(3*N_ST*0.9166); //Binder p.5/41
+  U_FD = R_FD*I_FD*3;
+  P_excitation = U_FD*I_FD;
+//losses
+  v_RO = d_RO*pi*n_RO/60;
+  P_windage_ventilation = k_schuisky*d_RO*(l_FE + 0.6*tau_p)*v_RO^2;
+  P_FE_ST_teeth = k_Fe_stator_teeth*P10*B_ST_teeth^2*m_ST_FE_teeth;
+  P_FE_ST_yoke = k_Fe_stator_yoke*P10*B_ST_yoke^2*m_ST_FE_yoke;
+  P_FE = (f/50)^1.3*(P_FE_ST_teeth + P_FE_ST_yoke);  
+//energy
+  der(E_SM_loss) = P_SM_loss;    
   
 //--------------------------COMPONENT MANAGEMENT--------------------------//
 //MODE 1 CHARGE
   if Mode == 1 then
 //tanks
-    if x_tank2 < x_tank_solsalt_min then
-      terminate("Minimum fill level of tank 2 reached");
-    end if;
-    if x_tank3 < x_tank_coldliq_min then
-      terminate("Minimum fill level of tank 3 reached");
-    end if;
-    if x_tank1 > x_tank1_solsalt_max then
-      terminate("Maximum fill level of tank 1 reached");
-    end if;
-    if x_tank4 > x_tank4_coldliq_max then
-      terminate("Maximum fill level of tank 4 reached");
-    end if;
+  if SOC_tank2 < 0  then
+    terminate("Minimum fill level of tank 2 reached");
+  end if;
+  if SOC_tank3 < 0  then
+    terminate("Minimum fill level of tank 3 reached");
+  end if;    
+  if SOC_tank1 > 1 then
+    terminate("Maximum fill level of tank 1 reached");
+  end if;
+  if SOC_tank4 >1  then
+    terminate("Maximum fill level of tank 4 reached");
+  end if;    
+    
     if T_tank1 > 873.150000 - 1 then
       terminate("Temperature in tank 1 too high");
     end if;
@@ -1513,18 +1629,20 @@ m_dot_WF_charge=PID_inventory_control.y;
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
 //tanks
-    if x_tank2 > x_tank2_solsalt_max then
-      terminate("Maximum fill level of tank 2 reached");
-    end if;
-    if x_tank3 > x_tank3_coldliq_max then
-      terminate("Maximum fill level of tank 3 reached");
-    end if;
-    if x_tank1 < x_tank_solsalt_min then
-      terminate("Minimum fill level of tank 1 reached");
-    end if;
-    if x_tank4 < x_tank_coldliq_min then
-      terminate("Minimum fill level of tank 4 reached");
-    end if;
+
+  if SOC_tank2 > 1  then
+    terminate("Maximum fill level of tank 2 reached");
+  end if;
+  if SOC_tank3 > 1  then
+    terminate("Maximum fill level of tank 3 reached");
+  end if;    
+  if SOC_tank1 < 0 then
+    terminate("Minimum fill level of tank 1 reached");
+  end if;
+  if SOC_tank4 <0  then
+    terminate("Minimum fill level of tank 4 reached");
+  end if;    
+        
     if T_tank1 > 873.150000 - 1 then
       terminate("Temperature in tank 1 too high");
     end if;
