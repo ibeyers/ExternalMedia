@@ -57,12 +57,16 @@ model DynamicMalta_charge_discharge_inventorycontrol
 
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
-  parameter SI.Temperature T_amb = from_degC(20);
-  WorkingFluid.ThermodynamicState state_amb_air(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";  
+  parameter SI.Temperature T_amb = from_degC(25);
+  WorkingFluid.ThermodynamicState state_amb_air(p(start = 101315), T(start = from_degC(25))) "thermodynamic state of rejec outlet";  
   
   //-------------Tanks//
   SI.Energy exergy_total_tanks(displayUnit = "MWh");
+  SI.Energy exergy_hot_tanks(displayUnit = "MWh");
+  SI.Energy exergy_cold_tanks(displayUnit = "MWh");    
   SI.Energy int_energy_total_tanks(displayUnit = "MWh");
+   //SI.Energy int_energy_hot_tanks(displayUnit = "MWh");
+   //SI.Energy int_energy_cold_tanks(displayUnit = "MWh");    
   //-------------Charge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom_charge = 766 "design mass flow rate";
@@ -79,12 +83,13 @@ model DynamicMalta_charge_discharge_inventorycontrol
   parameter Real m_dot_div_p_set_charge=0.007535;
   Real m_dot_div_p_charge(start = 0.00753);
   parameter Real n_CO_charge_start = 3000;
-  parameter SI.Power P_set_charge(displayUnit = "MW") = 89*1000*1000;
+  parameter SI.Power P_set_charge(displayUnit = "MW") = 178*1000*1000;
   //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
   SI.Energy exergy_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr_charge(displayUnit = "MW");
   SI.Energy E_mech_shaft_charge(displayUnit = "MWh", start = 0, fixed = true);  
   parameter Real hot_to_cold_mass_flow_ratio_charge=2.044;
+  SI.Energy E_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);    
   
   //-------------Discharge//
   //design
@@ -107,7 +112,7 @@ model DynamicMalta_charge_discharge_inventorycontrol
   SI.Power P_total_loss_irr(displayUnit = "MW");
   SI.Energy E_mech_shaft(displayUnit = "MWh", start = 0, fixed = true);   
   parameter Real hot_to_cold_mass_flow_ratio=2.044;   
-   
+  SI.Energy E_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);       
   //--------------------------PARAMETERS & VARIABLES TANKS-----------------------------//
   parameter SI.Mass m_working_solar_salt = 19386000;
   parameter SI.Mass m_working_methanol = 9486000;
@@ -327,6 +332,7 @@ model DynamicMalta_charge_discharge_inventorycontrol
   WorkingFluid.ThermodynamicState outlet_coldside_HEX3_charge(p(start = 100000), T(start = T_tank3_nom), phase(start = 1)) "Medium properties ";
   //-------------HEX rejection charge//
   SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");
+  SI.Heat Q_HEXrej_charge(displayUnit = "MWh", start = 0, fixed = true);    
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   SI.Energy E_loss_irr_HEXrej_charge(displayUnit = "MWh", start = 0, fixed = true);
   //-------------COMPRESSOR CHARGE//
@@ -367,7 +373,7 @@ model DynamicMalta_charge_discharge_inventorycontrol
   parameter Real beta_TU_nom_charge = 4.331 "design expansion ratio";
   parameter Real n_TU_nom_charge = 3000 "design speed";
   parameter SI.Efficiency eta_is_TU_nom_charge = 0.92 "design isentropic efficiency";
-  parameter SI.Temperature T_2_a_nom_charge = from_degC(24) "nominal inlet temperature";
+  parameter SI.Temperature T_2_a_nom_charge = from_degC(25) "nominal inlet temperature";
   parameter SI.Pressure p_2_a_nom_charge = 442461 "state pressure";
   //actual
   Real n_TU_charge(start = 3000) "actual speed";
@@ -538,8 +544,10 @@ model DynamicMalta_charge_discharge_inventorycontrol
   WorkingFluid.ThermodynamicState outlet_hotside_HEX3(p(start = 100000), T(start = T_tank3_nom)) "Medium properties ";
   SI.Power P_loss_irr_HEX3(displayUnit = "MW");
   SI.Energy E_loss_irr_HEX3(displayUnit = "MWh", start = 0, fixed = true);
+  //SI.Heat Q_HEX3(displayUnit = "MWh", start = 0, fixed = true);   
   //-------------HEX 4 rejection discharge//
   SI.HeatFlowRate Q_dot_HEXrej(displayUnit = "MW");
+  SI.Heat Q_HEXrej(displayUnit = "MWh", start = 0, fixed = true);    
   SI.Power P_loss_irr_HEXrej(displayUnit = "MW");
   SI.Energy E_loss_irr_HEXrej(displayUnit = "MWh", start = 0, fixed = true);
   //-------------COMPRESSOR DISCHARGE/
@@ -847,7 +855,7 @@ initial equation
 
 equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
-  state_amb_air = WorkingFluid.setState_pT(1001315, T_amb);
+  state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
 //PID charge
 /*
   P_mech_RO=PID_inventory_mdot_charge.u_s;
@@ -879,7 +887,6 @@ equation
   m_dot_div_p= PID_inventory.u_m;
   p_1=PID_inventory.y;
 
-
 //When discharge PID is turned off, this mus be uncommented
 /*
 m_dot_WF = 700 "mass flow rate";
@@ -890,6 +897,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
 
 //-------------SYSTEM TANKS//
   exergy_total_tanks = exergy_tank1 + exergy_tank2 + exergy_tank3 + exergy_tank4;
+  exergy_hot_tanks = exergy_tank1 + exergy_tank2;
+  exergy_cold_tanks = exergy_tank3 + exergy_tank4;    
   int_energy_total_tanks = int_energy_tank1 + int_energy_tank2 + int_energy_tank3 + int_energy_tank4;
   Q_dot_hightemp_res = der(int_energy_tank1 + int_energy_tank2);
 //-------------SYSTEM CHARGE//
@@ -902,7 +911,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   der(exergy_total_loss_irr_charge) = P_total_loss_irr_charge;
   P_total_loss_irr_charge = P_loss_irr_HEX1_charge + P_loss_irr_HEX2_charge + P_loss_irr_HEX3_charge + P_loss_irr_HEXrej_charge + P_loss_irr_CO_charge + P_loss_irr_TU_charge;
   der(E_mech_shaft_charge)=P_mech_shaft_charge;
-  hot_to_cold_mass_flow_ratio_charge=m_dot_solsalt_HEX1_charge/m_dot_methanol_HEX3_charge;  
+  hot_to_cold_mass_flow_ratio_charge=m_dot_solsalt_HEX1_charge/m_dot_methanol_HEX3_charge; 
+  E_total_loss_irr_charge=E_loss_irr_CO_charge+E_loss_irr_TU_charge+E_loss_irr_HEX1_charge+E_loss_irr_HEX2_charge+E_loss_irr_HEX2_charge+E_loss_irr_HEXrej_charge+E_TR_loss+E_SM_loss;
 //-------------SYSTEM DISCHARGE//
   P_mech_shaft = P_mech_CO + P_mech_TU;
   Q_pump = -Q_dot_HEX1;
@@ -913,7 +923,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   der(exergy_total_loss_irr) = P_total_loss_irr;
   P_total_loss_irr = P_loss_irr_HEX1 + P_loss_irr_HEX2 + P_loss_irr_HEX3 + P_loss_irr_HEXrej + P_loss_irr_CO + P_loss_irr_TU;
   der(E_mech_shaft)=P_mech_shaft;  
-  hot_to_cold_mass_flow_ratio=m_dot_solsalt_HEX1/m_dot_methanol_HEX3;  
+  hot_to_cold_mass_flow_ratio=m_dot_solsalt_HEX1/m_dot_methanol_HEX3; 
+  E_total_loss_irr = E_loss_irr_CO+E_loss_irr_TU+E_loss_irr_HEX1+E_loss_irr_HEX2+ E_loss_irr_HEX3+E_loss_irr_HEXrej+E_TR_loss+E_SM_loss;
 //MODE 1 CHARGE
   if Mode == 1 then
     der(Elec_energy_charge) = P_elec_charge;
@@ -984,7 +995,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   SOC_tank1 = (m_tank1 - m_tank1_min)/m_working_solar_salt ;
   m_tank1 = solsalt_tank1.d*A_cross_tank_solsalt*x_tank1;
   int_energy_tank1 = m_tank1*solsalt_tank1.u;
-  exergy_tank1 = m_tank1*solsalt_tank1_state.cp*(T_tank1 - T_amb) - T_amb*m_tank1*solsalt_tank1_state.cp*log(T_tank1/T_amb);
+  //exergy_tank1 = m_tank1*solsalt_tank1_state.cp*(T_tank1 - T_amb) - T_amb*m_tank1*solsalt_tank1_state.cp*log(T_tank1/T_amb);
+  exergy_tank1 = m_tank1*solsalt_tank1.u - T_amb*m_tank1*solsalt_tank1_state.s;
 //thermodynamic states
   solsalt_tank1_state = HotTESLiquid.setState_pT(p_tank1_nom, T_tank1);
 //solar salt properties
@@ -1020,7 +1032,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   SOC_tank2 = (m_tank2 - m_tank2_min)/m_working_solar_salt;
   m_tank2 = solsalt_tank2.d*A_cross_tank_solsalt*x_tank2;
   int_energy_tank2 = m_tank2*solsalt_tank2.u;
-  exergy_tank2 = m_tank2*solsalt_tank2_state.cp*(T_tank2 - T_amb) - T_amb*m_tank2*solsalt_tank2_state.cp*log(T_tank2/T_amb);
+  //exergy_tank2 = m_tank2*solsalt_tank2_state.cp*(T_tank2 - T_amb) - T_amb*m_tank2*solsalt_tank2_state.cp*log(T_tank2/T_amb);
+  exergy_tank2 = m_tank2*solsalt_tank2.u - T_amb*m_tank2*solsalt_tank2_state.s;
 //thermodynamic states
   solsalt_tank2_state = HotTESLiquid.setState_pT(p_tank2_nom, T_tank2);
 //solar salt properties
@@ -1056,7 +1069,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   SOC_tank3 = (m_tank3 - m_tank3_min)/m_working_methanol;
   m_tank3 = coldliq_tank3.d*A_cross_tank_coldliq*x_tank3;
   int_energy_tank3 = m_tank3*coldliq_tank3.u;
-  exergy_tank3 = m_tank3*coldliq_tank3_state.cp*(T_tank3 - T_amb) - T_amb*m_tank3*coldliq_tank3_state.cp*log(T_tank3/T_amb);
+  //exergy_tank3 = m_tank3*coldliq_tank3_state.cp*(T_tank3 - T_amb) - T_amb*m_tank3*coldliq_tank3_state.cp*log(T_tank3/T_amb);
+  exergy_tank3 = m_tank3*coldliq_tank3.u - T_amb*m_tank3*coldliq_tank3_state.s;
 //thermodynamic states
   coldliq_tank3_state = ColdTESLiquid.setState_pT(p_tank3_nom, T_tank3);
 //solar salt properties
@@ -1089,7 +1103,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   SOC_tank4 = (m_tank4 - m_tank4_min)/m_working_methanol;
   m_tank4 = coldliq_tank4.d*A_cross_tank_coldliq*x_tank4;
   int_energy_tank4 = m_tank4*coldliq_tank4.u;
-  exergy_tank4 = m_tank4*coldliq_tank4_state.cp*(T_tank4 - T_amb) - T_amb*m_tank4*coldliq_tank4_state.cp*log(T_tank4/T_amb);
+  //exergy_tank4 = m_tank4*coldliq_tank4_state.cp*(T_tank4 - T_amb) - T_amb*m_tank4*coldliq_tank4_state.cp*log(T_tank4/T_amb);
+  exergy_tank4 = m_tank4*(coldliq_tank4.u )- T_amb*m_tank4*coldliq_tank4_state.s;
 //thermodynamic states
   coldliq_tank4_state = ColdTESLiquid.setState_pT(p_tank4_nom, T_tank4);
 //solar salt properties
@@ -1173,6 +1188,8 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   T_3_a_charge = outlet_hotside_HEX1_charge.T;
 //irrev
   P_loss_irr_HEX1_charge = T0*((m_dot_WF_charge*(s_3_a_charge - s_3_charge)) + (m_dot_solsalt_HEX1_charge*(outlet_coldside_HEX1_charge.s - solsalt_tank2.s)));
+ //P_loss_irr_HEX1_charge = T0*((m_dot_WF_charge*(s_3_a_charge - s_3_charge)) + (m_dot_solsalt_HEX1_charge*(outlet_coldside_HEX1_charge.cp*(log(outlet_coldside_HEX1_charge.T/T0)) - (solsalt_tank2.state.cp*log(solsalt_tank2.T/T0)))));
+ //P_loss_irr_HEX1_charge = T0*((m_dot_WF_charge*(s_3_a_charge - s_3_charge)) + (m_dot_solsalt_HEX1_charge*cp_cold_ave_HEX1_charge*((log(outlet_coldside_HEX1_charge.T/T0)) - (log(solsalt_tank2.T/T0)))));
   der(E_loss_irr_HEX1_charge) = P_loss_irr_HEX1_charge;
 //-------------HEX2 (Recuperation) CHARGE//
 //pressure loss
@@ -1258,9 +1275,11 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   T_4_a_charge = outlet_coldside_HEX3_charge.T;
 //irrev
   P_loss_irr_HEX3_charge = T0*((m_dot_WF_charge*(s_4_a_charge - s_1_charge)) + (m_dot_methanol_HEX3_charge*(outlet_hotside_HEX3_charge.s - coldliq_tank3_state.s)));
+  // P_loss_irr_HEX3_charge = T0*((m_dot_WF_charge*(s_4_a_charge - s_1_charge)) + (m_dot_methanol_HEX3_charge*cp_hot_ave_HEX3_charge*(log(outlet_hotside_HEX3_charge.T/T0) - log(coldliq_tank3_state.T/T0))));
   der(E_loss_irr_HEX3_charge) = P_loss_irr_HEX3_charge;
 //-------------HEX 4 rejection charge//
   Q_dot_HEXrej_charge = (h_2_charge - h_2_a_charge)*m_dot_WF_charge;
+  der(Q_HEXrej_charge)= Q_dot_HEXrej_charge; 
 //irrev
   P_loss_irr_HEXrej_charge = T0*((m_dot_WF_charge*(s_2_a_charge - s_2_charge - ((h_2_a_charge - h_2_charge)/T0))));
   der(E_loss_irr_HEXrej_charge) = P_loss_irr_HEXrej_charge;
@@ -1402,7 +1421,9 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
 //WF
   T_3 = outlet_coldside_HEX1.T;
 //irrev
-  P_loss_irr_HEX1 = T0*((m_dot_WF*(s_3 - s_3_a)) + (m_dot_solsalt_HEX1*(outlet_hotside_HEX1.s - solsalt_tank1.s)));
+ P_loss_irr_HEX1 = T0*((m_dot_WF*(s_3 - s_3_a)) + (m_dot_solsalt_HEX1*(outlet_hotside_HEX1.s - solsalt_tank1.s)));
+ //P_loss_irr_HEX1 = T0*((m_dot_WF*(s_3 - s_3_a)) + (m_dot_solsalt_HEX1*((outlet_hotside_HEX1.cp*log(outlet_hotside_HEX1.T/T0)) - (solsalt_tank1.state.cp*log(solsalt_tank1.T/T0)))));
+ //P_loss_irr_HEX1 = T0*((m_dot_WF*(s_3 - s_3_a)) + (m_dot_solsalt_HEX1*cp_hot_ave_HEX1*((log(outlet_hotside_HEX1.T/solsalt_tank1.T)))));
   der(E_loss_irr_HEX1) = P_loss_irr_HEX1;
 //-------------HEX2 (Recuperation DISCHARGE)//
 //off-design
@@ -1489,11 +1510,14 @@ m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta
   outlet_coldside_HEX3 = ColdTESLiquid.setState_ph(p_tank3_nom, h_cold_out_HEX3);
   T_1 = outlet_hotside_HEX3.T;
 //irrev
-  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T0*(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s));
+   P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T0*(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s));
+ // P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T0*(m_dot_methanol_HEX3*cp_cold_ave_HEX3*(log(outlet_coldside_HEX3.T/coldliq_tank4_state.T)));
+ //P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T0*(m_dot_methanol_HEX3*((outlet_coldside_HEX3.cp*log(outlet_coldside_HEX3.T/T0)) - (coldliq_tank4_state.cp*log(coldliq_tank4_state.T/T0))));
   der(E_loss_irr_HEX3) = P_loss_irr_HEX3;
 //-------------HEX 4 rejection DISCHARGE//
   p_4_a = p_1_a;
   Q_dot_HEXrej = (h_4_a - h_1_a)*m_dot_WF;
+  der(Q_HEXrej)= Q_dot_HEXrej;   
 //irrev
   P_loss_irr_HEXrej = T0*((m_dot_WF*(s_1_a - s_4_a - ((h_1_a - h_4_a)/T0))));
   der(E_loss_irr_HEXrej) = P_loss_irr_HEXrej;

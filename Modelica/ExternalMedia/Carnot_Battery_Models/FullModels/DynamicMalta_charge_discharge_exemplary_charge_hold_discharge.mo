@@ -1,6 +1,6 @@
 within ExternalMedia.Carnot_Battery_Models.FullModels;
 
-model DynamicMalta_charge_discharge
+model DynamicMalta_charge_discharge_exemplary_charge_hold_discharge
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -33,8 +33,9 @@ model DynamicMalta_charge_discharge
                 */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode=2;
-  /*
+  //parameter Integer Mode = 0;
+    Integer Mode(start = 1);
+    
     parameter Real SOC_tank1_start = 0;
     parameter SI.Temperature T_tank1_start = from_degC(565);
     parameter Real SOC_tank2_start = 1;
@@ -43,7 +44,8 @@ model DynamicMalta_charge_discharge
     parameter SI.Temperature T_tank3_start = from_degC(25.1);
     parameter Real SOC_tank4_start = 0;
     parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
+  
+  /*
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -52,6 +54,7 @@ model DynamicMalta_charge_discharge
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 1;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+  */
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
   parameter SI.Temperature T_amb = from_degC(20);
@@ -692,6 +695,10 @@ model DynamicMalta_charge_discharge
     Placement(transformation(origin = {58, -40}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-64, -38}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Sources.Step step_down(height = -1, offset = 1, startTime = 36000)  annotation(
+    Placement(transformation(origin = {-28, -76}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Sources.Step step_up(height = 2, offset = 0, startTime = 72000)  annotation(
+    Placement(transformation(origin = {12, -76}, extent = {{-10, -10}, {10, 10}})));
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -712,6 +719,7 @@ initial equation
   m_tank4 = m_tank4_start;
   T_tank4 = T_tank4_start;
 equation
+  Mode=step_up.y+step_down.y;
 //--------------------------EQUATIONS SYSTEM-----------------------------//
   state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
   P_elec_charge = P_TR_HV;
@@ -1387,4 +1395,4 @@ equation
   end if;
   annotation(
     Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss active</div><div><br></div><div><br></div></body></html>"));
-end DynamicMalta_charge_discharge;
+end DynamicMalta_charge_discharge_exemplary_charge_hold_discharge;
