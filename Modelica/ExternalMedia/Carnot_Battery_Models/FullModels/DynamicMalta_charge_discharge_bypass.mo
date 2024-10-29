@@ -401,7 +401,7 @@ model DynamicMalta_charge_discharge_bypass
   //-------------STATES//
   //-------------Charge//
   //fixed temperature point charge
-  parameter SI.Temperature T_2_a_charge = from_degC(24) "outlet temperature after rejec";
+  parameter SI.Temperature T_2_a_charge = from_degC(25) "outlet temperature after rejec";
   //fixed pressure point charge
   SI.Pressure p_4_charge(start = p_fix_charge) "state 4 pressure";
   //state 1 charge
@@ -1722,7 +1722,7 @@ equation
       terminate("Temperature in tank 2 too low");
     end if;
 //turbomachinery
-/*
+
     if beta_CO_red_charge > beta_CO_red_charge_max then
       terminate("surge line reached");
     end if;
@@ -1735,7 +1735,7 @@ equation
     if beta_TU_red_charge < beta_TU_red_charge_min then
       terminate("minimum red pressure ratio  reached");
     end if;
-    */
+
     if n_CO_red_charge < 0.8 then
       terminate("compressor reduced relative speed too low");
     end if;
@@ -1764,7 +1764,6 @@ equation
       terminate("Temperature in tank 2 too low");
     end if;
 //turbomachinery
-/*
     if beta_CO_red > beta_CO_red_max then
       terminate("surge line reached");
     end if;
@@ -1777,7 +1776,6 @@ equation
     if beta_TU_red < beta_TU_red_min then
       terminate("minimum red pressure ratio  reached");
     end if;
-    */
     if n_CO_red < 0.8 then
       terminate("compressor reduced relative speed too low");
     end if;

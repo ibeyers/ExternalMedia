@@ -54,8 +54,8 @@ model DynamicMalta_charge_discharge
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
-  parameter SI.Temperature T_amb = from_degC(20);
-  WorkingFluid.ThermodynamicState state_amb_air(p(start = 1001315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
+  parameter SI.Temperature T_amb = from_degC(25);
+  WorkingFluid.ThermodynamicState state_amb_air(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of rejec outlet";
   //-------------Tanks//
   SI.Energy exergy_total_tanks(displayUnit = "MWh");
   SI.Energy int_energy_total_tanks(displayUnit = "MWh");
@@ -80,10 +80,11 @@ model DynamicMalta_charge_discharge
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
   //actual
-  SI.MassFlowRate m_dot_WF(start = 762) "mass flow rate";
+  SI.MassFlowRate m_dot_WF(start = 762*scaling_factor) "mass flow rate";
   parameter Real f_p = 0.01625 "pressure_loss_factor percent";
   parameter Real k_p = 0.0062084 "pressure_loss_factor";
   parameter SI.Pressure p_fix = 100000 "fixed pressure point through expansion vessel";
+  parameter Real scaling_factor=p_fix/p_1_nom;
   SI.Energy Elec_energy_discharge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_elec(displayUnit = "MW");
   //other
@@ -307,8 +308,8 @@ model DynamicMalta_charge_discharge
   SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   //-------------COMPRESSOR CHARGE//
-  parameter Real p = 1.8 "compressor map factor";
-  parameter Real m = 1.4 "compressor map factor";
+  parameter Real p = 0.42 "compressor map factor";
+  parameter Real m = 1.06 "compressor map factor";
   parameter Real c4 = 0.3 "factor 4, see Zhang2002";
   Real c1_charge "factor 1";
   Real c2_charge "factor 2";
@@ -317,9 +318,9 @@ model DynamicMalta_charge_discharge
   parameter Real beta_CO_nom_charge = 4.592 "design compression ratio";
   parameter Real n_CO_nom_charge = 3000 "design speed";
   // parameter SI.Efficiency eta_is_CO_nom_charge = 0.90535 "design isentropic efficiency";
-  parameter SI.Efficiency eta_is_CO_nom_charge = 0.903385 "design isentropic efficiency";
+  parameter SI.Efficiency eta_is_CO_nom_charge = 0.903175 "design isentropic efficiency";
   SI.Temperature T_4_nom_charge = from_degC(267.533) "state 4 temperature";
-  SI.Pressure p_4_nom_charge = p_fix_charge "state 4 pressure";
+  SI.Pressure p_4_nom_charge = 100000 "state 4 pressure";
   //actual
   Real beta_CO_charge(start = beta_CO_nom_charge) "absolute compression ratio";
   parameter Real n_CO_charge = 3000 "actual speed";
@@ -518,7 +519,7 @@ model DynamicMalta_charge_discharge
   parameter Real n_CO_nom = 3000 "design speed";
   parameter SI.Efficiency eta_is_CO_nom = 0.88 "design isentropic efficiency";
   SI.Temperature T_1_nom = from_degC(-53.76) "state 1 temperature";
-  SI.Pressure p_1_nom = p_fix "state 1 pressure";
+  parameter SI.Pressure p_1_nom = 100000 "state 1 pressure";
   //actual
   Real beta_CO(start = beta_CO_nom) "absolute compression ratio";
   parameter Real n_CO = 3000 "actual speed";
@@ -563,7 +564,7 @@ model DynamicMalta_charge_discharge
   //fixed pressure point charge
   SI.Pressure p_1 = p_fix "state 1 pressure";
   //STATE 1 a discharge
-  SI.Pressure p_1_a "pressure after Heat rejection ";
+  SI.Pressure p_1_a(start=103605*scaling_factor) "pressure after Heat rejection ";
   WorkingFluid.ThermodynamicState state_1_a "thermodynamic state after Heat rejection ";
   WorkingFluid.SpecificEnthalpy h_1_a "turbine-side recuperation after Heat rejection ";
   WorkingFluid.SpecificEntropy s_1_a "turbine-side recuperation after Heat rejection ";
@@ -581,18 +582,18 @@ model DynamicMalta_charge_discharge
   WorkingFluid.SpecificEntropy s_2_is "compressor outlet spec. entropy";
   //STATE 2 discharge
   SI.Temperature T_2(start = from_degC(114)) "actual outlet temperature of compressor";
-  SI.Pressure p_2(start = 591100) "pressure coming out of compressor";
+  SI.Pressure p_2(start = 591100*scaling_factor) "pressure coming out of compressor";
   WorkingFluid.ThermodynamicState state_2 "thermodynamic state of compressor outlet";
   WorkingFluid.SpecificEnthalpy h_2(start = 264244) "compressor outlet enthalpy";
   WorkingFluid.SpecificEntropy s_2 "compressor outlet spec. entropy";
   //STATE 3a discharge
-  SI.Pressure p_3_a(start = 581494) "Pressure after recup";
+  SI.Pressure p_3_a(start = 581494*scaling_factor) "Pressure after recup";
   SI.Temperature T_3_a(start = from_degC(260)) "outlet temperature after recuperation";
   WorkingFluid.ThermodynamicState state_3_a "thermodynamic state of compressor outlet";
   WorkingFluid.SpecificEnthalpy h_3_a(start = 264244) "compressor outlet enthalpy";
   WorkingFluid.SpecificEntropy s_3_a "compressor outlet spec. entropy";
   //STATE 3 discharge
-  SI.Pressure p_3(start = 572045) "Pressure after recup";
+  SI.Pressure p_3(start = 572045*scaling_factor) "Pressure after recup";
   SI.Temperature T_3(start = from_degC(556)) "outlet temperature after HEX";
   WorkingFluid.ThermodynamicState state_3 "thermodynamic state of HEX outlet";
   WorkingFluid.SpecificEnthalpy h_3(start = 579480) "HEX outlet enthalpy";
@@ -605,10 +606,10 @@ model DynamicMalta_charge_discharge
   WorkingFluid.SpecificEnthalpy h_4_is "turbine outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_is "isentropic turbine outlet spec. entropy";
   //STATE 4 discharge
-  SI.Pressure p_4(start = 105039) " pressure at turb outlet";
+  SI.Pressure p_4(start = 105039*scaling_factor) " pressure at turb outlet";
   WorkingFluid.SpecificEnthalpy h_4 "turbine outlet enthalpy";
   SI.Temperature T_4(start = from_degC(270)) "outlet temperature of turbine";
-  WorkingFluid.ThermodynamicState state_4(p(start = 105039), T(start = from_degC(270))) "thermodynamic state of turbine outlet";
+  WorkingFluid.ThermodynamicState state_4(p(start = 105039*scaling_factor), T(start = from_degC(270))) "thermodynamic state of turbine outlet";
   WorkingFluid.SpecificEntropy s_4 "turbine outlet spec. entropy";
   //STATE 4 guess discharge
   SI.Temperature T_4_guess(start = from_degC(270)) "outlet temperature of turbine";
@@ -616,7 +617,7 @@ model DynamicMalta_charge_discharge
   WorkingFluid.SpecificEnthalpy h_4_guess "turbine outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_guess "turbine outlet spec. entropy";
   //STATE 4 a discharge
-  SI.Pressure p_4_a(start = 103332) " pressure at recuperation outlet";
+  SI.Pressure p_4_a(start = 103332*scaling_factor) " pressure at recuperation outlet";
   SI.Temperature T_4_a(start = from_degC(270)) "outlet temperature after recuperation";
   WorkingFluid.ThermodynamicState state_4_a "thermodynamic state of turbine-side recuperation outlet";
   WorkingFluid.SpecificEnthalpy h_4_a "turbine-side recuperation outlet enthalpy";
@@ -1129,12 +1130,12 @@ equation
   P_loss_irr_CO = T0*m_dot_WF*(s_2 - s_1);
 //-------------EXPANDER DISCHARGE//
 //parameters
-  alpha = sqrt(1.4 - 0.4*n_TU_red);
+  alpha = sqrt(1.4 - 0.4*n_TU/n_TU_nom);
 //reduced values turbine
   eta_is_TU_red = eta_is_TU/eta_is_TU_nom;
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
-  G_TU_red = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
+  G_TU_red = alpha*sqrt((1/(beta_TU^2) - 1)/(1/(beta_TU_nom^2) - 1));
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
   eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
 //other turbine equations

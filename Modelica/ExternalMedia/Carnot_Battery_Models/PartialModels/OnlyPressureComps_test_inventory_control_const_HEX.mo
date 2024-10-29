@@ -1,6 +1,6 @@
 within ExternalMedia.Carnot_Battery_Models.PartialModels;
 
-model OnlyPressureComps_test_inventory_control
+model OnlyPressureComps_test_inventory_control_const_HEX
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -34,8 +34,8 @@ model OnlyPressureComps_test_inventory_control
   SI.Pressure delta_P_HEX2;
   SI.Pressure delta_P_HEX3;
 
-  //SI.Pressure p_sys;
-  //SI.Pressure p_sys_check;
+  SI.Pressure p_sys;
+    SI.Pressure p_sys_check;
   //state 1 discharge
   SI.Temperature T_1= from_degC(-53.760) " temperature";
   SI.Temperature T_3 "outlet temperature after HEX";
@@ -81,7 +81,7 @@ model OnlyPressureComps_test_inventory_control
   Real n_TU_red(start = 1) "reduced speed";
 
   Real G_TU_red(start = 1) "reduced mass flow rate turbine";
-  /*
+  
   //-------------EXPANDER CHECK//
   Real alpha_check "factor, see Zhang2002";  
   SI.MassFlowRate m_dot_WF_TU_check(start=m_dot_WF_nom);
@@ -97,7 +97,7 @@ model OnlyPressureComps_test_inventory_control
   Real G_TU_red_check(start = 1) "reduced mass flow rate turbine";
   //other
   SI.Pressure p_4_check;  
-  */
+  
   
  Modelica.Blocks.Continuous.SecondOrder T3_guess_control_discharge(w = 0.5, D = 0.4)  annotation(
     Placement(transformation(extent = {{-10, -10}, {10, 10}})));
@@ -121,16 +121,14 @@ equation
 //-------------EXPANDER DISCHARGE//
   n_TU=n_CO;
 //parameters
-  alpha = sqrt(1.4 - 0.4*(n_TU/n_TU_nom));
+  alpha = sqrt(1.4 - 0.4*n_TU_red);
 //reduced values turbine
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
- // G_TU_red = alpha*sqrt(((1/(beta_TU^2)) - 1)/((1/(beta_TU_nom^2)) - 1));
- m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt(((beta_TU^2) - 1)/((beta_TU_nom^2) - 1));
-  G_TU_red = (m_dot_WF*sqrt(T_3_guess)/p_3)/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
+  m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
+  G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
 //other turbine equations
   beta_TU = p_3/p_4;
-  /*
 //-------------EXPANDER CHECK//
 //parameters
   alpha_check = sqrt(1.4 - 0.4*n_TU_red_check);
@@ -145,11 +143,11 @@ equation
   n_TU_red_check = n_TU_check/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
  eta_is_TU_red_check = (1 - t*(1 - n_TU_red_check)^2)*(n_TU_red_check/G_TU_red_check)*(2 - ((n_TU_red_check/G_TU_red_check)));
   G_TU_red_check = m_dot_WF_TU_check*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
-    */
+    
 //pressure losses HEX
-  delta_P_HEX1 = k_p*m_dot_WF^2;
-  delta_P_HEX2 = k_p*m_dot_WF^2;
-  delta_P_HEX3 = k_p*m_dot_WF^2;
+  delta_P_HEX1 = k_p*m_dot_WF_nom^2;
+  delta_P_HEX2 = k_p*m_dot_WF_nom^2;
+  delta_P_HEX3 = k_p*m_dot_WF_nom^2;
 //-------------HEX 1 DISCHARGE//
 //pressure loss
   p_3 = p_3_a - delta_P_HEX1;
@@ -167,8 +165,8 @@ equation
   T_3= from_degC(555);
   // T_3= from_degC(556)-0.0006944444444444445 * time;
   
-  //p_sys=beta_TU_check;
-  //p_sys_check=beta_TU_check;
+  p_sys=beta_TU_check;
+  p_sys_check=beta_TU_check;
     
   //state 3 DISCHARGE guess
   T_3 = T3_guess_control_discharge.u;
@@ -179,4 +177,4 @@ annotation(
     __OpenModelica_commandLineOptions = "--matchingAlgorithm=PFPlusExt --indexReductionMethod=dynamicStateSelection -d=initialization,evaluateAllParameters,NLSanalyticJacobian",
  experiment(StartTime = 0, StopTime = 100, Tolerance = 1e-6, Interval = 1),
  __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
-end OnlyPressureComps_test_inventory_control;
+end OnlyPressureComps_test_inventory_control_const_HEX;

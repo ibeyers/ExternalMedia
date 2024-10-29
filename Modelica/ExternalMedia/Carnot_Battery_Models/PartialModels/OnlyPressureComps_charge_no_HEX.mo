@@ -1,6 +1,6 @@
 within ExternalMedia.Carnot_Battery_Models.PartialModels;
 
-model OnlyPressureComps_charge
+model OnlyPressureComps_charge_no_HEX
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
   import Modelica.Units.Conversions.from_degC;
@@ -67,11 +67,11 @@ model OnlyPressureComps_charge
 
   Real alpha_charge(start = 1) "factor, see Zhang2002";
   //design
-  parameter Real beta_TU_nom_charge = 4.331 "design expansion ratio";
+  parameter Real beta_TU_nom_charge = 4.592 "design expansion ratio";
   parameter Real n_TU_nom_charge = 3000 "design speed";
   parameter SI.Efficiency eta_is_TU_nom_charge = 0.92 "design isentropic efficiency";
   parameter SI.Temperature T_2_a_nom_charge = from_degC(25) "nominal inlet temperature";
-  parameter SI.Pressure p_2_a_nom_charge = 442461 "state pressure";
+  parameter SI.Pressure p_2_a_nom_charge = 459200 "state pressure";
   //actual
   parameter Real n_TU_charge = 3000 "actual speed";
   Real beta_TU_charge(start = beta_TU_nom_charge) "absolute expansion ratio";
@@ -115,16 +115,16 @@ eta_is_CO_red_charge = (1 - c4*(1 - n_CO_red_charge)^2)*(n_CO_red_charge/G_CO_re
 //reduced values expander
   n_TU_red_charge = n_TU_charge/sqrt(T_2_a_charge)/(n_TU_nom_charge/sqrt(T_2_a_nom_charge));
   G_TU_red_charge = m_dot_WF_charge*sqrt(T_2_a_charge)/p_2_a_charge/(m_dot_WF_nom_charge*sqrt(T_2_a_nom_charge)/p_2_a_nom_charge);
- G_TU_red = alpha_charge*sqrt(T_2_a_nom_charge/T_2_a_charge)*sqrt((beta_TU_charge^2 - 1)/(beta_TU_nom_charge^2 - 1));
+ m_dot_WF_charge/m_dot_WF_nom_charge = alpha_charge*sqrt(T_2_a_nom_charge/T_2_a_charge)*sqrt((beta_TU_charge^2 - 1)/(beta_TU_nom_charge^2 - 1));
   beta_TU_red_charge = beta_TU_charge/beta_TU_nom_charge;
 eta_is_TU_red_charge = (1 - t*(1 - n_TU_red_charge)^2)*(n_TU_red_charge/G_TU_red_charge)*(2 - ((n_TU_red_charge/G_TU_red_charge)));
 eta_is_TU_red_charge = eta_is_TU_charge/eta_is_TU_nom_charge;
 //other turbine equations
   beta_TU_charge = p_2_a_charge/p_1_charge;
 //pressure losses HEX
-  delta_P_HEX1_charge = k_p_charge*m_dot_WF_charge^2;
-  delta_P_HEX2_charge = k_p_charge*m_dot_WF_charge^2;
-  delta_P_HEX3_charge = k_p_charge*m_dot_WF_charge^2;
+  delta_P_HEX1_charge = 0;
+  delta_P_HEX2_charge = 0;
+  delta_P_HEX3_charge = 0;
 //-------------HEX 1 CHARGE//
 //pressure loss
   p_3_charge = p_3_a_charge + delta_P_HEX1_charge;
@@ -143,4 +143,4 @@ eta_is_TU_red_charge = eta_is_TU_charge/eta_is_TU_nom_charge;
   T_4_charge = T4_guess_control.u;
   T_4_charge_guess = T4_guess_control.y;
 
-end OnlyPressureComps_charge;
+end OnlyPressureComps_charge_no_HEX;
