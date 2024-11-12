@@ -33,8 +33,8 @@ model DynamicMalta_charge_discharge
                 */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode=2;
-  /*
+  parameter Integer Mode=1;
+
     parameter Real SOC_tank1_start = 0;
     parameter SI.Temperature T_tank1_start = from_degC(565);
     parameter Real SOC_tank2_start = 1;
@@ -43,7 +43,7 @@ model DynamicMalta_charge_discharge
     parameter SI.Temperature T_tank3_start = from_degC(25.1);
     parameter Real SOC_tank4_start = 0;
     parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
+ /*
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -52,6 +52,7 @@ model DynamicMalta_charge_discharge
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 1;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+  */
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
   parameter SI.Temperature T_amb = from_degC(25);
@@ -452,6 +453,8 @@ model DynamicMalta_charge_discharge
   HotTESLiquid.ThermodynamicState outlet_hotside_HEX1(T(start = 270)) "Medium properties of HEX port at interface to tank 2";
   WorkingFluid.ThermodynamicState outlet_coldside_HEX1(T(start = 570)) "Medium properties of HEX port at interface to tank 2";
   SI.Power P_loss_irr_HEX1(displayUnit = "MW");
+  SI.Power P_circ_pump_HEX1(displayUnit = "MW");
+  
   //-------------HEX 2 DISCHARGE//
   //actual
   SI.Pressure delta_P_HEX2;
@@ -507,6 +510,7 @@ model DynamicMalta_charge_discharge
   ColdTESLiquid.ThermodynamicState outlet_coldside_HEX3(p(start = 101325), T(start = T_tank4_nom)) "Medium properties ";
   WorkingFluid.ThermodynamicState outlet_hotside_HEX3(p(start = 100000), T(start = T_tank3_nom)) "Medium properties ";
   SI.Power P_loss_irr_HEX3(displayUnit = "MW");
+  SI.Power P_circ_pump_HEX3(displayUnit = "MW");  
   //-------------HEX 4 rejection discharge//
   SI.HeatFlowRate Q_dot_HEXrej(displayUnit = "MW");
   SI.Power P_loss_irr_HEXrej(displayUnit = "MW");
@@ -974,6 +978,7 @@ equation
   T_3_a_charge = outlet_hotside_HEX1_charge.T;
 //irrev
   P_loss_irr_HEX1_charge = T0*((m_dot_WF_charge*(s_3_a_charge - s_3_charge)) + (m_dot_solsalt_HEX1_charge*(outlet_coldside_HEX1_charge.s - solsalt_tank2.s)));
+
 //-------------HEX2 (Recuperation) CHARGE//
 //pressure loss
   delta_P_HEX2_charge = k_p_charge*m_dot_WF_charge^2;
@@ -1184,6 +1189,7 @@ equation
   T_3 = outlet_coldside_HEX1.T;
 //irrev
   P_loss_irr_HEX1 = T0*((m_dot_WF*(s_3 - s_3_a)) + (m_dot_solsalt_HEX1*(outlet_hotside_HEX1.s - solsalt_tank1.s)));
+    P_circ_pump_HEX1=(m_dot_solsalt_HEX1*delta_P_HEX1)/0.9;
 //-------------HEX2 (Recuperation DISCHARGE)//
 //off-design
   UA_HEX2/UA_HEX2_nom = (m_dot_WF^0.8)/(m_dot_WF_nom^0.8);
@@ -1269,6 +1275,8 @@ equation
   T_1 = outlet_hotside_HEX3.T;
 //irrev
   P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a))) + T0*(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s));
+      P_circ_pump_HEX3=(m_dot_methanol_HEX3*delta_P_HEX3)/0.9;
+      
 //-------------HEX 4 rejection DISCHARGE//
   p_4_a = p_1_a;
   Q_dot_HEXrej = (h_4_a - h_1_a)*m_dot_WF;
@@ -1387,5 +1395,7 @@ equation
     terminate("Minimum fill level of tank 4 reached");
   end if;
   annotation(
-    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss active</div><div><br></div><div><br></div></body></html>"));
+    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss active</div><div><br></div><div><br></div></body></html>"),
+  __OpenModelica_commandLineOptions = "--matchingAlgorithm=PFPlusExt --indexReductionMethod=dynamicStateSelection -d=initialization,evaluateAllParameters,NLSanalyticJacobian",
+  __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
 end DynamicMalta_charge_discharge;

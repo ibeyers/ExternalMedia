@@ -34,8 +34,8 @@ model DynamicMalta_charge_discharge_inventorycontrol_V2
                   */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode = 1;
-
+  parameter Integer Mode = 2;
+/*
       parameter Real SOC_tank1_start = 0;
       parameter SI.Temperature T_tank1_start = from_degC(565);
       parameter Real SOC_tank2_start = 1;
@@ -44,8 +44,8 @@ model DynamicMalta_charge_discharge_inventorycontrol_V2
       parameter SI.Temperature T_tank3_start = from_degC(25.1);
       parameter Real SOC_tank4_start = 0;
       parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+*/
 
-  /*
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -54,7 +54,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V2
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 1;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
+
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
   parameter SI.Temperature T_amb = from_degC(25);
@@ -89,6 +89,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V2
   SI.Energy E_mech_shaft_charge(displayUnit = "MWh", start = 0, fixed = true);
   parameter Real hot_to_cold_mass_flow_ratio_charge = 2.044;
   SI.Energy E_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
+  
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -105,13 +106,14 @@ model DynamicMalta_charge_discharge_inventorycontrol_V2
   Real m_dot_div_p(start = 0.00759);
   parameter Real m_dot_div_p_set = 0.00758;
   parameter Real n_CO_start = 3000;
-  parameter SI.Power P_set(displayUnit = "MW") = -50*1000*1000;
+  parameter SI.Power P_set(displayUnit = "MW") = -42*1000*1000;
   //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
   SI.Energy exergy_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr(displayUnit = "MW");
   SI.Energy E_mech_shaft(displayUnit = "MWh", start = 0, fixed = true);
   parameter Real hot_to_cold_mass_flow_ratio = 2.044;
   SI.Energy E_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
+  
   //--------------------------PARAMETERS & VARIABLES TANKS-----------------------------//
   parameter SI.Mass m_working_solar_salt = 19386000;
   parameter SI.Mass m_working_methanol = 9486000;
@@ -808,19 +810,16 @@ model DynamicMalta_charge_discharge_inventorycontrol_V2
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
   //discharge PID
-/*
-        Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 110000, yMin = 40000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01)  annotation(
+
+        Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 112000, yMin = 38000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01)  annotation(
           Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
 //k = 0.01, Ti = 0.01, wp = 0.9, wd = 0.2, Td = 0.01
-*/
-  //charge PID
 
+  //charge PID
+/*
     Modelica.Blocks.Continuous.LimPID PID_inventory_charge(yMax = 110000, yMin = 40000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01)  annotation(
       Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
-    /*    
-   Modelica.Blocks.Continuous.LimPID PID_inventory_mdot_charge(k = 0.0001, Ti = 10, Td = 0.1, yMax = 900, yMin = 200, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 756.5)  annotation(
-      Placement(transformation(origin = {36, 32}, extent = {{-10, -10}, {10, 10}})));
-  */
+*/
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -848,31 +847,26 @@ equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
   state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
 //PID charge
-
+/*
   P_mech_RO=PID_inventory_charge.u_s;
   P_mech_shaft_charge= PID_inventory_charge.u_m;
   p_4_charge=PID_inventory_charge.y; 
 
-
-/*
-  m_dot_div_p_set_charge=PID_inventory_charge.u_s;
-  m_dot_div_p_charge= PID_inventory_charge.u_m;
-  p_4_charge=PID_inventory_charge.y;
 */
+
 //When charge PID is turned off, this must be uncommented
 
-  //p_4_charge = p_fix_charge;
+  p_4_charge = p_fix_charge;
 
 //PID discharge
 
-/*
   P_mech_RO=PID_inventory.u_s;
   P_mech_shaft= PID_inventory.u_m;
   p_1=PID_inventory.y; 
-*/
+
 
 //When discharge PID is turned off, this mus be uncommented
- p_1=p_fix;
+// p_1=p_fix;
 //
   P_elec_charge = P_TR_HV;
   P_elec = P_TR_HV;
@@ -1116,11 +1110,12 @@ equation
 //-------------EXPANDER CHARGE//
   n_TU_charge = n_CO_charge;
 //parameters
-  alpha_charge = sqrt(1.4 - 0.4*n_TU_red_charge);
+  alpha_charge = sqrt(1.4 - 0.4*n_TU_charge/n_TU_nom_charge);
 //reduced values expander
   n_TU_red_charge = n_TU_charge/sqrt(T_2_a_charge)/(n_TU_nom_charge/sqrt(T_2_a_nom_charge));
   G_TU_red_charge = m_dot_WF_charge*sqrt(T_2_a_charge)/p_2_a_charge/(m_dot_WF_nom_charge*sqrt(T_2_a_nom_charge)/p_2_a_nom_charge);
-    G_TU_red_charge = alpha_charge*sqrt(T_2_a_nom_charge/T_2_a_charge)*sqrt((beta_TU_charge^2 - 1)/(beta_TU_nom_charge^2 - 1));
+   // G_TU_red_charge = alpha_charge*sqrt(T_2_a_nom_charge/T_2_a_charge)*sqrt((beta_TU_charge^2 - 1)/(beta_TU_nom_charge^2 - 1));
+  G_TU_red_charge = alpha_charge*sqrt((1/(beta_TU_charge^2) - 1)/(1/(beta_TU_nom_charge^2) - 1));
   beta_TU_red_charge = beta_TU_charge/beta_TU_nom_charge;
   eta_is_TU_red_charge = (1 - t*(1 - n_TU_red_charge)^2)*(n_TU_red_charge/G_TU_red_charge)*(2 - ((n_TU_red_charge/G_TU_red_charge)));
   eta_is_TU_red_charge = eta_is_TU_charge/eta_is_TU_nom_charge;
