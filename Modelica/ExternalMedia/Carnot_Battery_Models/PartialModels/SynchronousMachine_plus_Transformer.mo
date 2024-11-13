@@ -119,7 +119,7 @@ model SynchronousMachine_plus_Transformer
   Real eta_SM(start = 0.988);
   SI.Energy E_SM_loss(displayUnit = "MWh", start = 0, fixed = true);
   //stator-side variables
-  SI.ReactivePower Q_SM_ST(displayUnit = "MW");
+  SI.ReactivePower Q_SM_ST(displayUnit = "Mvar");
   SI.ComplexVoltage U_SM_ST(re(start = U_SM_ST_nom/sqrt(3)));
   //per phase value!
   SI.Power P_SM_ST(displayUnit = "MW");
@@ -139,7 +139,7 @@ model SynchronousMachine_plus_Transformer
   SI.Reactance X_sigma_ST;
   SI.Reactance X_h;
   SI.Reactance X_d;
-  SI.Resistance R_SM_ST = 0.005963040865384616;
+  SI.Resistance R_SM_ST = 0.002981520432692308;
   //mechanical
   NonSI.AngularVelocity_rpm n_RO "rotor speed";
   SI.AngularVelocity omega_SM;
@@ -152,7 +152,7 @@ model SynchronousMachine_plus_Transformer
   SI.Power P_FE_ST_teeth(displayUnit = "MW") "iron losses in stator teeth";
   SI.Power P_FE_ST_yoke(displayUnit = "MW") "iron losses in stator yoke";
   SI.Power P_FE(displayUnit = "MW") "total iron losses";
-  
+    SI.Power P_Ohmic_Stator(displayUnit = "MW") "total iron losses";
   
 equation
     S_GC_set = sqrt(P_GC_set^2 + Q_GC^2);
@@ -172,7 +172,7 @@ equation
     P_SM_loss = abs(P_SM_ST) - abs(P_mech_RO);
     P_mech_RO = P_airgap - P_windage_ventilation - P_additional - P_FE - P_excitation;
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
-    U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
+    U_SM_h=Complex(0,X_h)*I_SM_ST +U_P ;
     eta_SM = abs(P_mech_RO)/abs(P_SM_ST);
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
@@ -186,7 +186,7 @@ equation
     P_SM_loss = abs(P_mech_RO) - abs(P_SM_ST);
     P_mech_RO = P_airgap - (P_windage_ventilation + P_additional + P_FE + P_excitation);
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
-    U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
+    U_SM_h=Complex(0,X_h)*I_SM_ST + U_P;
     eta_SM = abs(P_SM_ST)/abs(P_mech_RO);
 //MODE 0 HOLD
   else
@@ -273,7 +273,7 @@ equation
 //
   ComplexMath.abs(I_FD_ref) = I_FD*2*N_p*N_FD/(3*N_ST*0.9166);
 //Binder p.5/41
-  U_FD = R_FD*I_FD*3;
+  U_FD = R_FD*I_FD;
   P_excitation = U_FD*I_FD;
 //losses
   v_RO = d_RO*pi*n_RO/60;

@@ -1,4 +1,4 @@
-within ExternalMedia.Carnot_Battery_Models.FullModels;
+within ExternalMedia.Carnot_Battery_Models.Graveyard;
 
 model DynamicMalta_charge_discharge_inventorycontrol
   //--------------------------IMPORTS-----------------------------//
@@ -30,21 +30,21 @@ model DynamicMalta_charge_discharge_inventorycontrol
 
   replaceable package RejectionHeatTransferFluid = EthyleneGlycol constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";
   /*
-                  package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
-                  */
+                    package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
+                    */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
   parameter Integer Mode = 2;
   /*
-      parameter Real SOC_tank1_start = 0;
-      parameter SI.Temperature T_tank1_start = from_degC(565);
-      parameter Real SOC_tank2_start = 1;
-      parameter SI.Temperature T_tank2_start = from_degC(279);
-      parameter Real SOC_tank3_start = 1;
-      parameter SI.Temperature T_tank3_start = from_degC(25.1);
-      parameter Real SOC_tank4_start = 0;
-      parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
+        parameter Real SOC_tank1_start = 0;
+        parameter SI.Temperature T_tank1_start = from_degC(565);
+        parameter Real SOC_tank2_start = 1;
+        parameter SI.Temperature T_tank2_start = from_degC(279);
+        parameter Real SOC_tank3_start = 1;
+        parameter SI.Temperature T_tank3_start = from_degC(25.1);
+        parameter Real SOC_tank4_start = 0;
+        parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+    */
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -821,21 +821,17 @@ model DynamicMalta_charge_discharge_inventorycontrol
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
   //discharge PID
-
-        Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 500000, yMin = 20000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 50000000, Ti = 0.01, wp = 0.9, wd = 0.2, Td = 0.01)  annotation(
-          Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
-
-
-        Modelica.Blocks.Continuous.LimPID PID_inventory_mdot(initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 762, yMax = 900, yMin = 200, k = 0.0001, wp = 0.9, wd = 0.2, Ti = 10, Td = 0.1)  annotation(
-          Placement(transformation(origin = {-50, 28}, extent = {{-10, -10}, {10, 10}})));
- 
+  Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 500000, yMin = 20000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 50000000, Ti = 0.01, wp = 0.9, wd = 0.2, Td = 0.01) annotation(
+    Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Continuous.LimPID PID_inventory_mdot(initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 762, yMax = 900, yMin = 200, k = 0.0001, wp = 0.9, wd = 0.2, Ti = 10, Td = 0.1) annotation(
+    Placement(transformation(origin = {-50, 28}, extent = {{-10, -10}, {10, 10}})));
   //charge PID
   /*
-    Modelica.Blocks.Continuous.LimPID PID_inventory_charge(k = 500000, Ti = 0.01, Td = 0.1, yMax = 300000, yMin = 20000, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000)  annotation(
-      Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
-   Modelica.Blocks.Continuous.LimPID PID_inventory_mdot_charge(k = 0.0001, Ti = 10, Td = 0.1, yMax = 900, yMin = 200, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 756.5)  annotation(
-      Placement(transformation(origin = {36, 32}, extent = {{-10, -10}, {10, 10}})));
-  */
+      Modelica.Blocks.Continuous.LimPID PID_inventory_charge(k = 500000, Ti = 0.01, Td = 0.1, yMax = 300000, yMin = 20000, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000)  annotation(
+        Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
+     Modelica.Blocks.Continuous.LimPID PID_inventory_mdot_charge(k = 0.0001, Ti = 10, Td = 0.1, yMax = 900, yMin = 200, wp = 0.9, wd = 0.2, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 756.5)  annotation(
+        Placement(transformation(origin = {36, 32}, extent = {{-10, -10}, {10, 10}})));
+    */
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -879,20 +875,15 @@ equation
   p_4_charge = p_fix_charge;
 //m_dot_WF_charge=766;
 //PID discharge
-
- // P_set=PID_inventory_mdot.u_s;
- P_mech_RO=PID_inventory_mdot.u_s;
-  P_mech_shaft= PID_inventory_mdot.u_m;
-  m_dot_WF=PID_inventory_mdot.y; 
-
-
-
-  m_dot_div_p_set=PID_inventory.u_s;
-  m_dot_div_p= PID_inventory.u_m;
-  p_1=PID_inventory.y;
-
+// P_set=PID_inventory_mdot.u_s;
+  P_mech_RO = PID_inventory_mdot.u_s;
+  P_mech_shaft = PID_inventory_mdot.u_m;
+  m_dot_WF = PID_inventory_mdot.y;
+  m_dot_div_p_set = PID_inventory.u_s;
+  m_dot_div_p = PID_inventory.u_m;
+  p_1 = PID_inventory.y;
 //When discharge PID is turned off, this mus be uncommented
- // m_dot_WF = 700 "mass flow rate";
+// m_dot_WF = 700 "mass flow rate";
 //m_dot_WF/m_dot_WF_nom = alpha*sqrt(T_3_nom/T_3_guess)*sqrt((beta_TU^2 - 1)/(beta_TU_nom^2 - 1));
   P_elec_charge = P_TR_HV;
   P_elec = P_TR_HV;

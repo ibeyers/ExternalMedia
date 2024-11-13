@@ -89,8 +89,7 @@ parameter SI.ReactivePower Q_set(displayUnit = "Mvar") = -81.12*1000*1000;
   SI.Power P_additional(displayUnit = "MW") "additional losses";
   SI.Power P_FE_ST_teeth(displayUnit = "MW") "iron losses in stator teeth";
   SI.Power P_FE_ST_yoke(displayUnit = "MW") "iron losses in stator yoke";
-  SI.Power P_FE(displayUnit = "MW") "total iron losses";
-  
+  SI.Power P_FE(displayUnit = "MW") "total iron losses";  
   SI.Power P_Ohmic_Stator(displayUnit = "MW") "total iron losses";
   
 equation
@@ -101,7 +100,6 @@ equation
     P_SM_loss = abs(P_SM_ST) - abs(P_mech_RO);
     P_mech_RO = P_airgap - P_windage_ventilation - P_additional - P_FE - P_excitation;
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
-    //U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
     U_SM_h=Complex(0,X_h)*I_SM_ST +U_P ;
     eta_SM = abs(P_mech_RO)/abs(P_SM_ST);
 //MODE 2 DISCHARGE
@@ -111,7 +109,6 @@ equation
     P_SM_loss = abs(P_mech_RO) - abs(P_SM_ST);
     P_mech_RO = P_airgap - (P_windage_ventilation + P_additional + P_FE + P_excitation);
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
-    //U_P = Complex(R_SM_ST, X_d)*I_SM_ST + U_SM_ST;
     U_SM_h=Complex(0,X_h)*I_SM_ST + U_P;
     eta_SM = abs(P_SM_ST)/abs(P_mech_RO);
 //MODE 0 HOLD
@@ -152,7 +149,7 @@ equation
   ComplexMath.abs(I_FD_ref) = I_FD*2*N_p*N_FD/(3*N_ST*0.9166);
 //Binder p.5/41
   U_FD = R_FD*I_FD;
-  P_excitation = (U_FD*I_FD);
+  P_excitation = U_FD*I_FD;
 //losses
   v_RO = d_RO*pi*n_RO/60;
   P_windage_ventilation = k_schuisky*d_RO*(l_FE + 0.6*tau_p)*v_RO^2;

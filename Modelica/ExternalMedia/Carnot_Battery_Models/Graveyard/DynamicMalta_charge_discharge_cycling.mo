@@ -1,4 +1,4 @@
-within ExternalMedia.Carnot_Battery_Models.FullModels;
+within ExternalMedia.Carnot_Battery_Models.Graveyard;
 
 model DynamicMalta_charge_discharge_cycling
   //--------------------------IMPORTS-----------------------------//
@@ -28,9 +28,8 @@ model DynamicMalta_charge_discharge_cycling
 
   replaceable package RejectionHeatTransferFluid = EthyleneGlycol constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";
   /*
-            package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
-            */
- 
+              package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
+              */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
   Integer Mode(start = 1);
@@ -42,28 +41,26 @@ model DynamicMalta_charge_discharge_cycling
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 0;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-
-
-/*
-    Integer Mode(start = 2);
-    parameter Real SOC_tank1_start = 1;
-    parameter SI.Temperature T_tank1_start = from_degC(565);
-    parameter Real SOC_tank2_start = 0;
-    parameter SI.Temperature T_tank2_start = from_degC(271.5);
-    parameter Real SOC_tank3_start = 0;
-    parameter SI.Temperature T_tank3_start = from_degC(25.195);
-    parameter Real SOC_tank4_start = 1;
-    parameter SI.Temperature T_tank4_start = from_degC(-59.85);
-*/
+  /*
+      Integer Mode(start = 2);
+      parameter Real SOC_tank1_start = 1;
+      parameter SI.Temperature T_tank1_start = from_degC(565);
+      parameter Real SOC_tank2_start = 0;
+      parameter SI.Temperature T_tank2_start = from_degC(271.5);
+      parameter Real SOC_tank3_start = 0;
+      parameter SI.Temperature T_tank3_start = from_degC(25.195);
+      parameter Real SOC_tank4_start = 1;
+      parameter SI.Temperature T_tank4_start = from_degC(-59.85);
+  */
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
   parameter SI.Temperature T_amb = from_degC(20);
   HotTESLiquid.BaseProperties state_amb_solsalt(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of ambient reference state";
-  ColdTESLiquid.BaseProperties state_amb_coldliq(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of ambient reference state"; 
-//-------------Tanks//
-  SI.Energy exergy_total_tanks(displayUnit = "MWh");  
+  ColdTESLiquid.BaseProperties state_amb_coldliq(p(start = 101315), T(start = from_degC(20))) "thermodynamic state of ambient reference state";
+  //-------------Tanks//
+  SI.Energy exergy_total_tanks(displayUnit = "MWh");
   SI.Energy int_energy_total_tanks(displayUnit = "MWh");
-  //SI.Power der_Exergy;     
+  //SI.Power der_Exergy;
   //-------------Charge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom_charge = 766 "design mass flow rate";
@@ -77,7 +74,6 @@ model DynamicMalta_charge_discharge_cycling
   SI.Energy Elec_energy_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_elec_charge(displayUnit = "MW");
   Real m_dot_div_p_charge;
-
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -90,11 +86,11 @@ model DynamicMalta_charge_discharge_cycling
   SI.Power P_elec(displayUnit = "MW");
   //other
   SI.HeatFlowRate Q_dot_hightemp_res(displayUnit = "MW");
-    Real m_dot_div_p;
+  Real m_dot_div_p;
   //--------------------------PARAMETERS & VARIABLES TANKS-----------------------------//
   //geometry for both solar salt tanks
   parameter SI.Diameter D_tank_solsalt = 36.104957;
-  parameter SI.Height h_tank_solsalt =12.03498;
+  parameter SI.Height h_tank_solsalt = 12.03498;
   parameter SI.Area A_cross_tank_solsalt = pi*(D_tank_solsalt/2)^2 "Cross-section Tank";
   parameter SI.Volume V_tank_solsalt = A_cross_tank_solsalt*h_tank_solsalt "Volume Tank";
   parameter SI.Thickness d_insulation_tank_solsalt = 0.4 "thickness of insulation wall layer";
@@ -102,9 +98,8 @@ model DynamicMalta_charge_discharge_cycling
   parameter SI.Radius r_outer = D_tank_solsalt/2 + d_insulation_tank_solsalt "outer radius";
   parameter SI.Area A_W_tank_solsalt = (pi*D_tank_solsalt*h_tank_solsalt) + A_cross_tank_solsalt*2 "Total Surface Wall";
   parameter SI.Height x_tank_solsalt_min = 0.4;
-  parameter SI.Height x_tank1_solsalt_max = x_tank_solsalt_min+10.941;
-  parameter SI.Height x_tank2_solsalt_max = x_tank_solsalt_min+9.90;
-
+  parameter SI.Height x_tank1_solsalt_max = x_tank_solsalt_min + 10.941;
+  parameter SI.Height x_tank2_solsalt_max = x_tank_solsalt_min + 9.90;
   //geometry for both methanol tanks
   parameter SI.Diameter D_tank_coldliq = 35.5045;
   parameter SI.Height h_tank_coldliq = 11.8348;
@@ -115,15 +110,14 @@ model DynamicMalta_charge_discharge_cycling
   parameter SI.Radius r_outer_coldliq = D_tank_coldliq/2 + d_insulation_tank_coldliq "outer radius";
   parameter SI.Area A_W_tank_coldliq = (pi*D_tank_coldliq*h_tank_coldliq) + A_cross_tank_coldliq*2 "Total Surface Wall";
   parameter SI.Height x_tank_coldliq_min = 0.4;
-   parameter SI.Height x_tank3_coldliq_max = x_tank_coldliq_min+10.7589;
-  parameter SI.Height x_tank4_coldliq_max = x_tank_coldliq_min+10.09027;
-
+  parameter SI.Height x_tank3_coldliq_max = x_tank_coldliq_min + 10.7589;
+  parameter SI.Height x_tank4_coldliq_max = x_tank_coldliq_min + 10.09027;
   //--------------------------TANK 1
   //nominal
   parameter SI.Temperature T_tank1_nom = from_degC(565.6);
   parameter SI.Pressure p_tank1_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank1_nom = 1730.66;
-  parameter SI.Mass m_tank1_nom = (x_tank1_solsalt_max-x_tank_solsalt_min)*A_cross_tank_solsalt*rho_tank1_nom;
+  parameter SI.Mass m_tank1_nom = (x_tank1_solsalt_max - x_tank_solsalt_min)*A_cross_tank_solsalt*rho_tank1_nom;
   HotTESLiquid.ThermodynamicState solsalt_tank1_nom(p(start = p_tank1_nom), T(start = T_tank1_nom)) "Nominal thermodynamic state";
   //start
   parameter SI.Mass m_tank1_start = (x_tank_solsalt_min + SOC_tank1_start*(x_tank1_solsalt_max - x_tank_solsalt_min))*A_cross_tank_solsalt*rho_tank1_nom;
@@ -150,7 +144,7 @@ model DynamicMalta_charge_discharge_cycling
   parameter SI.Temperature T_tank2_nom = from_degC(271.5);
   parameter SI.Pressure p_tank2_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank2_nom = 1917.33;
-  parameter SI.Mass m_tank2_nom =  (x_tank2_solsalt_max-x_tank_solsalt_min)*A_cross_tank_solsalt*rho_tank2_nom;
+  parameter SI.Mass m_tank2_nom = (x_tank2_solsalt_max - x_tank_solsalt_min)*A_cross_tank_solsalt*rho_tank2_nom;
   HotTESLiquid.ThermodynamicState solsalt_tank2_nom(p(start = p_tank2_nom), T(start = T_tank2_nom)) "Nominal thermodynamic state";
   //start
   parameter SI.Mass m_tank2_start = (x_tank_solsalt_min + SOC_tank2_start*(x_tank2_solsalt_max - x_tank_solsalt_min))*A_cross_tank_solsalt*rho_tank2_nom;
@@ -177,7 +171,7 @@ model DynamicMalta_charge_discharge_cycling
   parameter SI.Temperature T_tank3_nom = from_degC(25.195);
   parameter SI.Pressure p_tank3_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank3_nom = 890.546;
-  parameter SI.Mass m_tank3_nom =  (x_tank3_coldliq_max-x_tank_coldliq_min)*A_cross_tank_coldliq*rho_tank3_nom;
+  parameter SI.Mass m_tank3_nom = (x_tank3_coldliq_max - x_tank_coldliq_min)*A_cross_tank_coldliq*rho_tank3_nom;
   ColdTESLiquid.ThermodynamicState coldliq_tank3_nom(p(start = p_tank3_nom), T(start = T_tank3_nom)) "Nominal thermodynamic state";
   //start
   parameter SI.Mass m_tank3_start = (x_tank_coldliq_min + SOC_tank3_start*(x_tank3_coldliq_max - x_tank_coldliq_min))*A_cross_tank_coldliq*rho_tank3_nom;
@@ -201,7 +195,7 @@ model DynamicMalta_charge_discharge_cycling
   parameter SI.Temperature T_tank4_nom = from_degC(-59.85);
   parameter SI.Pressure p_tank4_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank4_nom = 949.56;
-  parameter SI.Mass m_tank4_nom =(x_tank4_coldliq_max-x_tank_coldliq_min)*A_cross_tank_coldliq*rho_tank4_nom;
+  parameter SI.Mass m_tank4_nom = (x_tank4_coldliq_max - x_tank_coldliq_min)*A_cross_tank_coldliq*rho_tank4_nom;
   ColdTESLiquid.ThermodynamicState coldliq_tank4_nom(p(start = p_tank4_nom), T(start = T_tank4_nom)) "Nominal thermodynamic state";
   //start
   parameter SI.Mass m_tank4_start = (x_tank_coldliq_min + SOC_tank4_start*(x_tank4_coldliq_max - x_tank_coldliq_min))*A_cross_tank_coldliq*rho_tank4_nom;
@@ -309,7 +303,7 @@ model DynamicMalta_charge_discharge_cycling
   ColdTESLiquid.ThermodynamicState outlet_hotside_HEX3_charge(p(start = 101325), T(start = T_tank4_nom), phase(start = 1)) "Medium properties ";
   WorkingFluid.ThermodynamicState outlet_coldside_HEX3_charge(p(start = 100000), T(start = T_tank3_nom), phase(start = 1)) "Medium properties ";
   //-------------HEX rejection charge//
-  SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");  
+  SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   //-------------COMPRESSOR CHARGE//
   parameter Real p = 1.8 "compressor map factor";
@@ -321,13 +315,13 @@ model DynamicMalta_charge_discharge_cycling
   //design
   parameter Real beta_CO_nom_charge = 4.592 "design compression ratio";
   parameter Real n_CO_nom_charge = 3000 "design speed";
- // parameter SI.Efficiency eta_is_CO_nom_charge = 0.90535 "design isentropic efficiency";
- parameter SI.Efficiency eta_is_CO_nom_charge = 0.90385 "design isentropic efficiency";
+  // parameter SI.Efficiency eta_is_CO_nom_charge = 0.90535 "design isentropic efficiency";
+  parameter SI.Efficiency eta_is_CO_nom_charge = 0.90385 "design isentropic efficiency";
   SI.Temperature T_4_nom_charge = from_degC(267.533) "state 4 temperature";
   SI.Pressure p_4_nom_charge = p_fix_charge "state 4 pressure";
   //actual
   Real beta_CO_charge(start = beta_CO_nom_charge) "absolute compression ratio";
- parameter Real n_CO_charge = 3000 "actual speed";
+  parameter Real n_CO_charge = 3000 "actual speed";
   SI.Efficiency eta_is_CO_charge "absolute isentropic efficiency";
   //reduced
   Real beta_CO_red_charge(start = 1) "reduced compression ratio";
@@ -358,13 +352,11 @@ model DynamicMalta_charge_discharge_cycling
   //other
   SI.Power P_mech_TU_charge(displayUnit = "MW");
   SI.Power P_loss_irr_TU_charge(displayUnit = "MW");
-
-    //-------------SYSTEM CHARGE//
-    SI.Power P_mech_shaft_charge(displayUnit = "MW");
-    SI.HeatFlowRate Q_pump_charge(displayUnit = "MW");
-    Real COP(start = 1);
-    Real work_ratio_charge;
-
+  //-------------SYSTEM CHARGE//
+  SI.Power P_mech_shaft_charge(displayUnit = "MW");
+  SI.HeatFlowRate Q_pump_charge(displayUnit = "MW");
+  Real COP(start = 1);
+  Real work_ratio_charge;
   //-------------STATES//
   //-------------Charge//
   //fixed temperature point charge
@@ -395,13 +387,12 @@ model DynamicMalta_charge_discharge_cycling
   SI.Temperature T_4_charge_guess(start = from_degC(267.533)) "state 4 temperature";
   WorkingFluid.ThermodynamicState state_4_charge_guess(p(start = p_fix_charge), T(start = from_degC(267.533))) "thermodynamic state";
   WorkingFluid.SpecificEnthalpy h_4_charge_guess(start = 671458) "enthalpy";
-  WorkingFluid.SpecificEntropy s_4_charge_guess(start = 4495) "spec. entropy";  
+  WorkingFluid.SpecificEntropy s_4_charge_guess(start = 4495) "spec. entropy";
   //state 4 charge
   SI.Temperature T_4_charge(start = from_degC(267.533)) "state 4 temperature";
   WorkingFluid.ThermodynamicState state_4_charge(p(start = p_fix_charge), T(start = from_degC(267.533))) "thermodynamic state";
   WorkingFluid.SpecificEnthalpy h_4_charge(start = 671458) "enthalpy";
   WorkingFluid.SpecificEntropy s_4_charge(start = 4495) "spec. entropy";
-
   //STATE 3 isentropic charge
   SI.Temperature T_3_is_charge(start = from_degC(541.61)) "isentropic outlet temperature of compressor";
   WorkingFluid.ThermodynamicState state_3_is_charge(p(start = 449506), T(start = from_degC(541.61))) "thermodynamic state of compressor outlet";
@@ -419,7 +410,7 @@ model DynamicMalta_charge_discharge_cycling
   SI.Pressure p_3_a_charge(start = 456754) "Pressure after HEX";
   WorkingFluid.SpecificEnthalpy h_3_a_charge(start = 685666) "HEX outlet enthalpy";
   WorkingFluid.SpecificEntropy s_3_a_charge(start = 4079) "HEX outlet spec. entropy";
-    //state 2 charge
+  //state 2 charge
   SI.Pressure p_2_charge(start = 454306) "state  pressure";
   SI.Temperature T_2_charge(start = 309.3) "temperature ";
   WorkingFluid.ThermodynamicState state_2_charge(p(start = 452019), T(start = from_degC(32.66))) "thermodynamic state ";
@@ -430,10 +421,7 @@ model DynamicMalta_charge_discharge_cycling
   WorkingFluid.SpecificEnthalpy h_2_a_charge(start = 423634) "rejec outlet enthalpy";
   WorkingFluid.SpecificEntropy s_2_a_charge(start = 3448) "rejec outlet spec. entropy";
   SI.Pressure p_2_a_charge(start = 454306) "Pressure after rejec";
-
-
-    //--------------------------PARAMETERS & VARIABLES DISCHARGE-----------------------------//
-
+  //--------------------------PARAMETERS & VARIABLES DISCHARGE-----------------------------//
   //-------------HEX 1//
   //actual
   Real UA_HEX1;
@@ -460,7 +448,6 @@ model DynamicMalta_charge_discharge_cycling
   HotTESLiquid.ThermodynamicState outlet_hotside_HEX1(T(start = 270)) "Medium properties of HEX port at interface to tank 2";
   WorkingFluid.ThermodynamicState outlet_coldside_HEX1(T(start = 570)) "Medium properties of HEX port at interface to tank 2";
   SI.Power P_loss_irr_HEX1(displayUnit = "MW");
-  
   //-------------HEX 2 DISCHARGE//
   //actual
   SI.Pressure delta_P_HEX2;
@@ -641,14 +628,12 @@ model DynamicMalta_charge_discharge_cycling
     Placement(transformation(origin = {58, -40}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-64, -38}, extent = {{-10, -10}, {10, 10}})));
-/*
-  Modelica.Blocks.Sources.Pulse input_pulse(amplitude = -1, period = 72000, offset = 2, startTime = 36000)  annotation(
-    Placement(transformation(origin = {-18, -68}, extent = {{-10, -10}, {10, 10}}))); 
-    */
-
-  Modelica.Blocks.Sources.Pulse input_pulse(amplitude = 1, period = 72000, offset = 1, startTime = 36000)  annotation(
+  /*
+    Modelica.Blocks.Sources.Pulse input_pulse(amplitude = -1, period = 72000, offset = 2, startTime = 36000)  annotation(
+      Placement(transformation(origin = {-18, -68}, extent = {{-10, -10}, {10, 10}}))); 
+      */
+  Modelica.Blocks.Sources.Pulse input_pulse(amplitude = 1, period = 72000, offset = 1, startTime = 36000) annotation(
     Placement(transformation(origin = {-18, -68}, extent = {{-10, -10}, {10, 10}})));
-
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -669,33 +654,33 @@ initial equation
   m_tank4 = m_tank4_start;
   T_tank4 = T_tank4_start;
 equation
-  Mode=input_pulse.y;
+  Mode = input_pulse.y;
 //--------------------------EQUATIONS SYSTEM-----------------------------//
   state_amb_solsalt.p = 101315;
-  state_amb_solsalt.T=550; 
+  state_amb_solsalt.T = 550;
   state_amb_coldliq.p = 101315;
-  state_amb_coldliq.T=T_amb;
-  
-  P_elec_charge = P_mech_shaft_charge;//not final eq
+  state_amb_coldliq.T = T_amb;
+  P_elec_charge = P_mech_shaft_charge;
+//not final eq
   P_elec = P_mech_shaft;
 //not final eq
 //-------------SYSTEM TANKS//
   exergy_total_tanks = exergy_tank1 + exergy_tank2 + exergy_tank3 + exergy_tank4;
   int_energy_total_tanks = int_energy_tank1 + int_energy_tank2 + int_energy_tank3 + int_energy_tank4;
   Q_dot_hightemp_res = der(int_energy_tank1 + int_energy_tank2);
-  //der_Exergy=der(exergy_total_tanks);
+//der_Exergy=der(exergy_total_tanks);
 //-------------SYSTEM CHARGE//
   P_mech_shaft_charge = P_mech_CO_charge + P_mech_TU_charge;
   Q_pump_charge = Q_dot_HEX1_charge;
   COP = Q_pump_charge/P_mech_shaft_charge;
   work_ratio_charge = P_mech_CO_charge/abs(P_mech_TU_charge);
-  m_dot_div_p_charge=m_dot_WF_charge/p_1_charge;
+  m_dot_div_p_charge = m_dot_WF_charge/p_1_charge;
 //-------------SYSTEM DISCHARGE//
   P_mech_shaft = P_mech_CO + P_mech_TU;
   Q_pump = -Q_dot_HEX1;
   eta_heat_to_power = P_mech_shaft/Q_pump;
   work_ratio = abs(P_mech_TU)/P_mech_CO;
-  m_dot_div_p=m_dot_WF/p_1;
+  m_dot_div_p = m_dot_WF/p_1;
 //MODE 1 CHARGE
   if Mode == 1 then
     der(Elec_energy_charge) = P_elec_charge;
@@ -733,7 +718,7 @@ equation
 //energy balance
   der(m_tank1*solsalt_tank1.u) = m_out_tank1*solsalt_tank1.h + m_in_tank1*h_in_tank1 + Q_dot_to_amb_tank1;
 //states
-  SOC_tank1 = (m_tank1-(solsalt_tank1.d*A_cross_tank_solsalt*x_tank_solsalt_min))/m_tank1_nom;
+  SOC_tank1 = (m_tank1 - (solsalt_tank1.d*A_cross_tank_solsalt*x_tank_solsalt_min))/m_tank1_nom;
   m_tank1 = solsalt_tank1.d*A_cross_tank_solsalt*x_tank1;
   int_energy_tank1 = m_tank1*solsalt_tank1.u;
   exergy_tank1 = m_tank1*solsalt_tank1_state.cp*(T_tank1 - T_amb) - T_amb*m_tank1*solsalt_tank1_state.cp*log(T_tank1/T_amb);
@@ -744,8 +729,8 @@ equation
   solsalt_tank1.T = T_tank1;
 //losses
   Q_div_A_tank1 = (0.00017*(T_tank1 - 273.15) + 0.012)*1000;
-  //Q_dot_to_amb_tank1 = -Q_div_A_tank1*A_W_tank_solsalt;
-  Q_dot_to_amb_tank1=0;
+//Q_dot_to_amb_tank1 = -Q_div_A_tank1*A_W_tank_solsalt;
+  Q_dot_to_amb_tank1 = 0;
 //-------------TANK 2//
 //nominal
   solsalt_tank2_nom = HotTESLiquid.setState_pT(p_tank2_nom, T_tank2_nom);
@@ -769,7 +754,7 @@ equation
 //energy balance
   der(m_tank2*solsalt_tank2.u) = m_out_tank2*solsalt_tank2.h + m_in_tank2*h_in_tank2 + Q_dot_to_amb_tank2;
 //states
-  SOC_tank2 = (m_tank2-(solsalt_tank2.d*A_cross_tank_solsalt*x_tank_solsalt_min))/m_tank2_nom;
+  SOC_tank2 = (m_tank2 - (solsalt_tank2.d*A_cross_tank_solsalt*x_tank_solsalt_min))/m_tank2_nom;
   m_tank2 = solsalt_tank2.d*A_cross_tank_solsalt*x_tank2;
   int_energy_tank2 = m_tank2*solsalt_tank2.u;
   exergy_tank2 = m_tank2*solsalt_tank2_state.cp*(T_tank2 - T_amb) - T_amb*m_tank2*solsalt_tank2_state.cp*log(T_tank2/T_amb);
@@ -780,8 +765,8 @@ equation
   solsalt_tank2.T = T_tank2;
 //losses
   Q_div_A_tank2 = (0.00017*(T_tank2 - 273.15) + 0.012)*1000;
-  //Q_dot_to_amb_tank2 = -Q_div_A_tank2*A_W_tank_solsalt;
-  Q_dot_to_amb_tank2 =0;
+//Q_dot_to_amb_tank2 = -Q_div_A_tank2*A_W_tank_solsalt;
+  Q_dot_to_amb_tank2 = 0;
 //-------------TANK 3//
 //nominal
   coldliq_tank3_nom = ColdTESLiquid.setState_pT(p_tank3_nom, T_tank3_nom);
@@ -805,11 +790,10 @@ equation
 //energy balance
   der(m_tank3*coldliq_tank3.u) = m_out_tank3*coldliq_tank3.h + m_in_tank3*h_in_tank3;
 //states
-  SOC_tank3 = (m_tank3-(coldliq_tank3.d*A_cross_tank_coldliq*x_tank_coldliq_min))/m_tank3_nom;
+  SOC_tank3 = (m_tank3 - (coldliq_tank3.d*A_cross_tank_coldliq*x_tank_coldliq_min))/m_tank3_nom;
   m_tank3 = coldliq_tank3.d*A_cross_tank_coldliq*x_tank3;
   int_energy_tank3 = m_tank3*coldliq_tank3.u;
   exergy_tank3 = m_tank3*coldliq_tank3_state.cp*(T_tank3 - T_amb) - T_amb*m_tank3*coldliq_tank3_state.cp*log(T_tank3/T_amb);
-
 //thermodynamic states
   coldliq_tank3_state = ColdTESLiquid.setState_pT(p_tank3_nom, T_tank3);
 //solar salt properties
@@ -839,7 +823,7 @@ equation
 //energy balance
   der(m_tank4*coldliq_tank4.u) = m_out_tank4*coldliq_tank4.h + m_in_tank4*h_in_tank4;
 //states
-  SOC_tank4 = (m_tank4-(coldliq_tank4.d*A_cross_tank_coldliq*x_tank_coldliq_min))/m_tank4_nom;
+  SOC_tank4 = (m_tank4 - (coldliq_tank4.d*A_cross_tank_coldliq*x_tank_coldliq_min))/m_tank4_nom;
   m_tank4 = coldliq_tank4.d*A_cross_tank_coldliq*x_tank4;
   int_energy_tank4 = m_tank4*coldliq_tank4.u;
   exergy_tank4 = m_tank4*coldliq_tank4_state.cp*(T_tank4 - T_amb) - T_amb*m_tank4*coldliq_tank4_state.cp*log(T_tank4/T_amb);
@@ -863,7 +847,7 @@ equation
   c1_charge = n_CO_red_charge/(p*(1 - m/n_CO_red_charge) + n_CO_red_charge*(n_CO_red_charge - m)^2);
   c2_charge = (p - 2*m*n_CO_red_charge^2)/(p*(1 - m/n_CO_red_charge) + n_CO_red_charge*(n_CO_red_charge - m)^2);
   c3_charge = -1*(p*m*n_CO_red_charge - m^2*n_CO_red_charge^3)/(p*(1 - m/n_CO_red_charge) + n_CO_red_charge*(n_CO_red_charge - m)^2);
-  P_mech_CO_charge = m_dot_WF_charge*(h_3_charge - h_4_charge); 
+  P_mech_CO_charge = m_dot_WF_charge*(h_3_charge - h_4_charge);
   P_loss_irr_CO_charge = T0*m_dot_WF_charge*(s_3_charge - s_4_charge);
 //-------------EXPANDER CHARGE//
 //parameters
@@ -887,9 +871,9 @@ equation
 //off-design
   UA_HEX1_charge/UA_HEX1_nom = ((m_dot_WF_charge^0.8*m_dot_solsalt_HEX1_charge^0.8)/(m_dot_WF_nom_charge^0.8*m_dot_solsalt_HEX1_nom^0.8))*((m_dot_WF_nom_charge^0.8 + m_dot_solsalt_HEX1_nom^0.8)/(m_dot_WF_charge^0.8 + m_dot_solsalt_HEX1_charge^0.8));
 //charge: inlet cold side= tank 2 inlet hot side=state 3
-  outlet_hotside_guess_HEX1_charge = WorkingFluid.setState_pT(p_3_a_charge, T_tank2+9);
+  outlet_hotside_guess_HEX1_charge = WorkingFluid.setState_pT(p_3_a_charge, T_tank2 + 9);
 //WF
-  outlet_coldside_guess_HEX1_charge = HotTESLiquid.setState_pT(p_tank1_nom, T_3_charge-9);
+  outlet_coldside_guess_HEX1_charge = HotTESLiquid.setState_pT(p_tank1_nom, T_3_charge - 9);
 //NaK
   cp_cold_ave_HEX1_charge = (solsalt_tank2_state.cp + outlet_coldside_guess_HEX1_charge.cp)/2;
   cp_hot_ave_HEX1_charge = (WorkingFluid.specificHeatCapacityCp(state_3_charge) + WorkingFluid.specificHeatCapacityCp(outlet_hotside_guess_HEX1_charge))/2;
@@ -969,9 +953,11 @@ equation
 //off-design
   UA_HEX3_charge/UA_HEX3_nom = ((m_dot_WF_charge^0.8*m_dot_methanol_HEX3_charge^0.8)/(m_dot_WF_nom_charge^0.8*m_dot_methanol_HEX3_nom^0.8))*((m_dot_WF_nom_charge^0.8 + m_dot_methanol_HEX3_nom^0.8)/(m_dot_WF_charge^0.8 + m_dot_methanol_HEX3_charge^0.8));
 //charge: inlet cold side= state 1 inlet hot side=tank 3
-  outlet_hotside_guess_HEX3_charge = ColdTESLiquid.setState_pT(p_tank4_nom, T_1_charge+9);//
+  outlet_hotside_guess_HEX3_charge = ColdTESLiquid.setState_pT(p_tank4_nom, T_1_charge + 9);
+//
 //buffer to minimum temperature of methanol mixture through , which is fine, as it is a guess anyway, Tout, hot side will be higher
-  outlet_coldside_guess_HEX3_charge = WorkingFluid.setState_pT(p_4_a_charge, T_tank3-7);//
+  outlet_coldside_guess_HEX3_charge = WorkingFluid.setState_pT(p_4_a_charge, T_tank3 - 7);
+//
   cp_cold_ave_HEX3_charge = (WorkingFluid.specificHeatCapacityCp(state_1_charge) + WorkingFluid.specificHeatCapacityCp(outlet_coldside_guess_HEX3_charge))/2;
   cp_hot_ave_HEX3_charge = (WorkingFluid.specificHeatCapacityCp(outlet_hotside_guess_HEX3_charge) + coldliq_tank3_state.cp)/2;
 //heat capacity rates
@@ -1003,7 +989,7 @@ equation
 //irrev
   P_loss_irr_HEX3_charge = T0*((m_dot_WF_charge*(s_4_a_charge - s_1_charge)) + (m_dot_methanol_HEX3_charge*(outlet_hotside_HEX3_charge.s - coldliq_tank3_state.s)));
 //-------------HEX 4 rejection charge//
-  Q_dot_HEXrej_charge = (h_2_charge - h_2_a_charge)*m_dot_WF_charge;  
+  Q_dot_HEXrej_charge = (h_2_charge - h_2_a_charge)*m_dot_WF_charge;
 //irrev
   P_loss_irr_HEXrej_charge = T0*((m_dot_WF_charge*(s_2_a_charge - s_2_charge - ((h_2_a_charge - h_2_charge)/T0))));
 //-------------STATES//
@@ -1029,7 +1015,7 @@ equation
   T_4_charge_guess = T4_guess_control.y;
   state_4_charge_guess = WorkingFluid.setState_pT(p_4_charge, T_4_charge_guess);
   h_4_charge_guess = WorkingFluid.specificEnthalpy(state_4_charge_guess);
-  s_4_charge_guess = WorkingFluid.specificEntropy(state_4_charge_guess);  
+  s_4_charge_guess = WorkingFluid.specificEntropy(state_4_charge_guess);
 //STATE 4 charge
   state_4_charge = WorkingFluid.setState_pT(p_4_charge, T_4_charge);
   h_4_charge = WorkingFluid.specificEnthalpy(state_4_charge);
@@ -1056,7 +1042,6 @@ equation
   state_2_a_charge = WorkingFluid.setState_pT(p_2_a_charge, T_2_a_charge);
   h_2_a_charge = WorkingFluid.specificEnthalpy(state_2_a_charge);
   s_2_a_charge = WorkingFluid.specificEntropy(state_2_a_charge);
-
 //--------------------------EQUATIONS DISCHARGE-----------------------------//
 //-------------COMPRESSOR DISCHARGE//
 //reduced values compressor
@@ -1096,9 +1081,9 @@ equation
 //off-design
   UA_HEX1/UA_HEX1_nom = ((m_dot_WF^0.8*m_dot_solsalt_HEX1^0.8)/(m_dot_WF_nom^0.8*m_dot_solsalt_HEX1_nom^0.8))*((m_dot_WF_nom^0.8 + m_dot_solsalt_HEX1_nom^0.8)/(m_dot_WF^0.8 + m_dot_solsalt_HEX1^0.8));
 //discharge: inlet cold side= state_3_a inlet hot side=solsalt_tank1_state
-  outlet_hotside_guess_HEX1 = HotTESLiquid.setState_pT(p_tank2_nom, T_3_a+9);
+  outlet_hotside_guess_HEX1 = HotTESLiquid.setState_pT(p_tank2_nom, T_3_a + 9);
 //NaK
-  outlet_coldside_guess_HEX1 = WorkingFluid.setState_pT(p_3, solsalt_tank1_state.T-9);
+  outlet_coldside_guess_HEX1 = WorkingFluid.setState_pT(p_3, solsalt_tank1_state.T - 9);
 //WF
   cp_hot_ave_HEX1 = (solsalt_tank1_state.cp + outlet_hotside_guess_HEX1.cp)/2;
   cp_cold_ave_HEX1 = (WorkingFluid.specificHeatCapacityCp(state_3_a) + WorkingFluid.specificHeatCapacityCp(outlet_coldside_guess_HEX1))/2;
@@ -1178,8 +1163,10 @@ equation
   p_1 = p_1_a - delta_P_HEX3;
   delta_P_HEX3 = k_p*m_dot_WF^2;
 //discharge: inlet cold side=tank 4  inlet hot side=state 1a
-  outlet_hotside_guess_HEX3 = WorkingFluid.setState_pT(p_1, T_tank4+7); //
-  outlet_coldside_guess_HEX3 = ColdTESLiquid.setState_pT(p_tank3_nom, T_1_a-9);//
+  outlet_hotside_guess_HEX3 = WorkingFluid.setState_pT(p_1, T_tank4 + 7);
+//
+  outlet_coldside_guess_HEX3 = ColdTESLiquid.setState_pT(p_tank3_nom, T_1_a - 9);
+//
 //pinch point guess
   cp_cold_ave_HEX3 = (coldliq_tank4_state.cp + ColdTESLiquid.specificHeatCapacityCp(outlet_coldside_guess_HEX3))/2;
   cp_hot_ave_HEX3 = (WorkingFluid.specificHeatCapacityCp(state_1_a) + WorkingFluid.specificHeatCapacityCp(outlet_hotside_guess_HEX3))/2;
@@ -1212,13 +1199,12 @@ equation
   outlet_coldside_HEX3 = ColdTESLiquid.setState_ph(p_tank3_nom, h_cold_out_HEX3);
   T_1 = outlet_hotside_HEX3.T;
 //irrev
-  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a)) +(m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s)));
+  P_loss_irr_HEX3 = T0*((m_dot_WF*(s_1 - s_1_a)) + (m_dot_methanol_HEX3*(outlet_coldside_HEX3.s - coldliq_tank4_state.s)));
 //-------------HEX 4 rejection DISCHARGE//
   p_4_a = p_1_a;
   Q_dot_HEXrej = (h_4_a - h_1_a)*m_dot_WF;
 //irrev
   P_loss_irr_HEXrej = T0*((m_dot_WF*(s_1_a - s_4_a - ((h_1_a - h_4_a)/T0))));
-  
 //state 1_a DISCHARGE
   state_1_a = WorkingFluid.setState_pT(p_1_a, T_1_a);
   h_1_a = WorkingFluid.specificEnthalpy(state_1_a);
