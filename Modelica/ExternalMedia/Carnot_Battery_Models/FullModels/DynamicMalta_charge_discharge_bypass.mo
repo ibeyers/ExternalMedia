@@ -78,7 +78,6 @@ model DynamicMalta_charge_discharge_bypass
   Real m_dot_div_p_charge(start = 0.0076);
   parameter Real n_CO_charge_start = 3000;
   parameter SI.Power P_set_charge(displayUnit = "MW") = 177*1000*1000;
-  //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
   SI.Energy exergy_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr_charge(displayUnit = "MW");
   SI.Energy E_mech_shaft_charge(displayUnit = "MWh", start = 0, fixed = true);
@@ -117,8 +116,8 @@ model DynamicMalta_charge_discharge_bypass
   parameter SI.Mass m_working_solar_salt = 19386000;
   parameter SI.Mass m_working_methanol = 9486000;
   //geometry for both solar salt tanks
-  parameter SI.Diameter D_tank_solsalt = 36.104957;
-  parameter SI.Height h_tank_solsalt = 12.03498;
+  parameter SI.Diameter D_tank_solsalt = 37.395499;
+  parameter SI.Height h_tank_solsalt = 11.218649;
   parameter SI.Area A_cross_tank_solsalt = pi*(D_tank_solsalt/2)^2 "Cross-section Tank";
   parameter SI.Volume V_tank_solsalt = A_cross_tank_solsalt*h_tank_solsalt "Volume Tank";
   parameter SI.Thickness d_insulation_tank_solsalt = 0.4 "thickness of insulation wall layer";
@@ -127,8 +126,8 @@ model DynamicMalta_charge_discharge_bypass
   parameter SI.Area A_W_tank_solsalt = (pi*D_tank_solsalt*h_tank_solsalt) + A_cross_tank_solsalt*2 "Total Surface Wall";
   parameter SI.Height x_tank_solsalt_min = 0.4;
   //geometry for both methanol tanks
-  parameter SI.Diameter D_tank_coldliq = 35.5045;
-  parameter SI.Height h_tank_coldliq = 11.8348;
+  parameter SI.Diameter D_tank_coldliq = 36.773594;
+  parameter SI.Height h_tank_coldliq = 11.032078;
   parameter SI.Area A_cross_tank_coldliq = pi*(D_tank_coldliq/2)^2 "Cross-section Tank";
   parameter SI.Volume V_tank_coldliq = A_cross_tank_coldliq*h_tank_coldliq "Volume Tank";
   parameter SI.Thickness d_insulation_tank_coldliq = 0.4 "thickness of insulation wall layer";
@@ -689,6 +688,16 @@ model DynamicMalta_charge_discharge_bypass
   WorkingFluid.SpecificEnthalpy h_4_a(start = 520945) "turbine-side recuperation outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_a "turbine-side recuperation outlet spec. entropy";
   //------------------ELECTRICAL MACHINERY
+        //Grid connection point
+  Modelica.Units.SI.Power P_GC_set(displayUnit = "MW");        
+  Modelica.Units.SI.ReactivePower Q_GC_set(start = -50*1000*1000, displayUnit = "Mvar");
+  Modelica.Units.SI.ReactivePower Q_GC(start=-50*1000*1000,displayUnit = "Mvar"); //helper variable
+  Modelica.Units.SI.ReactivePower S_GC_set;  
+  parameter Real cos_phi_GC=0.95;
+  //connection point set parameters
+  parameter SI.Voltage U_TR_set = 220*1000;
+  parameter SI.Angle phi_TR_set = 0;
+  SI.ReactivePower Q_TR_set(displayUnit = "MW",start = -50*1000*1000);  
   //------------------TRANSFORMER
   //transformer parameters
   parameter SI.ApparentPower S_TR_nom(displayUnit = "MVA") = 208*1000*1000;
@@ -701,10 +710,6 @@ model DynamicMalta_charge_discharge_bypass
   parameter SI.Power P_TR_loss_OC(displayUnit = "kW") = (P_TR_loss_OC_div_S_TR_nom/100)*S_TR_nom;
   parameter Real u_TR_SC = 11.875135026230133;
   parameter SI.Current I_TR_max = 537.638 "maximum transformer current";
-  //connection point set parameters
-  parameter SI.Voltage U_TR_set = 220*1000;
-  parameter SI.Angle phi_TR_set = 0;
-  parameter SI.ReactivePower Q_TR_set = -50*1000*1000;
   SI.Angle phi_U_HV(start = 0) "Phase of voltage at high-voltage side of transformer";
   SI.Angle phi_U_HV_min_I_HV "Phase shift between voltage and current high-voltage side of transformer";
   SI.Angle phi_I_HV "Phase of current at high-voltage side of transformer";
@@ -783,11 +788,12 @@ model DynamicMalta_charge_discharge_bypass
   Real eta_SM(start = 0.988);
   SI.Energy E_SM_loss(displayUnit = "MWh", start = 0, fixed = true);
   //stator-side variables
-  SI.Power Q_SM_ST(displayUnit = "Mvar");
+  SI.ReactivePower Q_SM_ST(displayUnit = "Mvar");
   SI.ComplexVoltage U_SM_ST(re(start = U_SM_ST_nom/sqrt(3)));
   //per phase value!
   SI.Power P_SM_ST(displayUnit = "MW");
   Complex S_SM_ST;
+    SI.ApparentPower S_SM_ST_abs(displayUnit = "MVA");
   SI.ComplexCurrent I_SM_ST "stator side complex current";
   //air-gap
   SI.ComplexVoltage U_SM_h(re(start = U_SM_ST_nom/sqrt(3)));
@@ -912,6 +918,7 @@ equation
   E_total_loss_irr = E_loss_irr_CO + E_loss_irr_TU + E_loss_irr_HEX1 + E_loss_irr_HEX2 + E_loss_irr_HEX3 + E_loss_irr_HEXrej + E_TR_loss + E_SM_loss;
 //MODE 1 CHARGE
   if Mode == 1 then
+      P_GC_set=P_set_charge;
     der(Elec_energy_charge) = P_elec_charge;
     der(Elec_energy_discharge) = 0;
     P_TR_HV = P_set_charge;
@@ -931,6 +938,7 @@ equation
 //bypass
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
+      P_GC_set=P_set;  
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = P_elec;
     P_TR_HV = P_set;
@@ -949,6 +957,7 @@ equation
     outlet_coldside_guess_HEX1_charge = HotTESLiquid.setState_pT(p_tank1_nom, T_tank1_nom);
 //bypass
   else
+      P_GC_set=0;
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = 0;
     Q_TR_HV = 0;
@@ -1599,7 +1608,12 @@ equation
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
 //------------------ELECTRICAL MACHINERY
-//------------------TRANSFORMER
+    S_GC_set = sqrt(P_GC_set^2 + Q_GC^2);
+    cos_phi_GC = P_GC_set/S_GC_set;
+    Q_GC_set = abs(Q_GC)*(0 - 1);
+//ensure that Q_GC_dis_set is negative, because OMPython has a problem with it
+    Q_GC_set = Q_TR_set;
+    //------------------TRANSFORMER
 //connection point to grid
   phi_U_HV = phi_TR_set;
   U_TR_HV_phase = U_TR_set/sqrt(3) "phase voltage of reference phase";
@@ -1660,6 +1674,7 @@ equation
   U_SM_ST = U_TR_LV;
   0 = P_TR_LV + P_SM_ST;
   S_SM_ST = Complex(P_SM_ST, Q_SM_ST);
+    S_SM_ST_abs=ComplexMath.abs(S_SM_ST);
 //airgap
   U_SM_ST = Complex(R_SM_ST, X_sigma_ST)*I_SM_ST + U_SM_h;
   S_SM_h = 3*U_SM_h*ComplexMath.conj(I_SM_ST);
@@ -1715,13 +1730,19 @@ equation
     if beta_TU_red_charge < beta_TU_red_charge_min then
       terminate("minimum red pressure ratio  reached");
     end if;
-
     if n_CO_red_charge < 0.8 then
       terminate("compressor reduced relative speed too low");
     end if;
     if n_CO_red_charge > 1.05 then
       terminate("compressor reduced relative speed too high");
     end if;
+    //electrical machines      
+    if S_TR_HV_abs > S_TR_nom then
+    terminate("maximum transformer apparent power reached");
+    end if;
+   if S_SM_ST_abs > S_SM_nom then
+    terminate("maximum synchronous machine apparent power reached");
+    end if;    
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
 //tanks
@@ -1762,6 +1783,13 @@ equation
     if n_CO_red > 1.05 then
       terminate("compressor reduced relative speed too high");
     end if;
+    //electrical machines      
+    if S_TR_HV_abs > S_TR_nom then
+    terminate("maximum transformer apparent power reached");
+    end if;
+   if S_SM_ST_abs > S_SM_nom then
+    terminate("maximum synchronous machine apparent power reached");
+    end if;    
 //MODE 0 HOLD
   else
     if T_tank1 > 873.150000 - 1 then

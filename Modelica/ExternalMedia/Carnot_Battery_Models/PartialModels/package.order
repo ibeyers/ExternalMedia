@@ -14,3 +14,7 @@ OnlyPressureComps_charge_no_HEX
 OnlyPressureComps_test_inventory_control_no_HEX
 SynchronousMachine_plus_Transformer
 SynchronousMachine_154_MVA
+Transformer_90MVA
+Transformer_100MVA
+Transformer_180MVA
+Transformer_250MVA

@@ -1,9 +1,9 @@
 within ExternalMedia.Carnot_Battery_Models.FullModels;
 
-model DynamicMalta_charge_discharge_varspeed
+model DynamicMalta_charge_discharge_charge_discharge_cycling_V2
   //--------------------------IMPORTS-----------------------------//
   import Modelica.Units.SI;
-   import Modelica.Units.NonSI; 
+  import Modelica.Units.NonSI;
   import Modelica.Units.Conversions.from_degC;
   import Modelica.ComplexMath;
   //import Constants
@@ -30,12 +30,12 @@ model DynamicMalta_charge_discharge_varspeed
 
   replaceable package RejectionHeatTransferFluid = EthyleneGlycol constrainedby Modelica.Media.Interfaces.PartialMedium "Medium model";
   /*
-                package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
-                */
+                  package WorkingFluid = ExternalMedia.Media.CoolPropMedium(mediumName = "Nitrogen", substanceNames = {"N2"}, ThermoStates = Modelica.Media.Interfaces.Choices.IndependentVariables.ph); 
+                  */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode = 2;
-  /*
+  //parameter Integer Mode = 0;
+  Integer Mode(start = 1);
   parameter Real SOC_tank1_start = 0;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 1;
@@ -44,24 +44,23 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 0;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-  */
-
-        parameter Real SOC_tank1_start = 1;
-        parameter SI.Temperature T_tank1_start = from_degC(565);
-        parameter Real SOC_tank2_start = 0;
-        parameter SI.Temperature T_tank2_start = from_degC(279);
-        parameter Real SOC_tank3_start = 0;
-        parameter SI.Temperature T_tank3_start = from_degC(25.1);
-        parameter Real SOC_tank4_start = 1;
-        parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-
+  /*
+    parameter Real SOC_tank1_start = 1;
+    parameter SI.Temperature T_tank1_start = from_degC(565);
+    parameter Real SOC_tank2_start = 0;
+    parameter SI.Temperature T_tank2_start = from_degC(271.5);
+    parameter Real SOC_tank3_start = 0;
+    parameter SI.Temperature T_tank3_start = from_degC(25.1);
+    parameter Real SOC_tank4_start = 1;
+    parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+    */
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = T_amb;
   parameter SI.Temperature T_amb = from_degC(25);
   WorkingFluid.ThermodynamicState state_amb_air(p(start = 101315), T(start = from_degC(25))) "thermodynamic state of rejec outlet";
   //-------------Tanks//
   SI.Energy exergy_total_tanks(displayUnit = "MWh");
-    SI.Energy exergy_hot_tanks(displayUnit = "MWh");
+  SI.Energy exergy_hot_tanks(displayUnit = "MWh");
   SI.Energy exergy_cold_tanks(displayUnit = "MWh");
   SI.Energy int_energy_total_tanks(displayUnit = "MWh");
   //-------------Charge//
@@ -76,16 +75,12 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Energy Elec_energy_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_elec_charge(displayUnit = "MW");
   Real m_dot_div_p_charge(start = 0.0076);
-  parameter Real n_CO_charge_start = 3000;
-  parameter SI.Power P_set_charge(displayUnit = "MW") = 85*1000*1000;
-  //SI.Power der_exergy_total_tanks_charge(displayUnit = "MW");
   SI.Energy exergy_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr_charge(displayUnit = "MW");
   SI.Energy E_mech_shaft_charge(displayUnit = "MWh", start = 0, fixed = true);
-  parameter Real hot_to_cold_mass_flow_ratio_charge = 2.044;
+  parameter Real hot_to_cold_mass_flow_ratio_charge = 2.04307;
   Real COP_system_charge;
   SI.Energy E_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
-    
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -99,17 +94,15 @@ model DynamicMalta_charge_discharge_varspeed
   //other
   SI.HeatFlowRate Q_dot_hightemp_res(displayUnit = "MW");
   Real m_dot_div_p(start = 0.0076);
-  parameter Real n_CO_start = 3000;
-  parameter SI.Power P_set(displayUnit = "MW") = -59*1000*1000;
   SI.Energy exergy_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr(displayUnit = "MW");
   SI.Energy E_mech_shaft(displayUnit = "MWh", start = 0, fixed = true);
-  parameter Real hot_to_cold_mass_flow_ratio = 2.044;
+  parameter Real hot_to_cold_mass_flow_ratio = 2.04307;
   Real COP_system;
   SI.Energy E_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
   //--------------------------PARAMETERS & VARIABLES TANKS-----------------------------//
-  parameter SI.Mass m_working_solar_salt = 19386000;
-  parameter SI.Mass m_working_methanol = 9486000;
+  parameter SI.Mass m_working_solar_salt = 19630273;
+  parameter SI.Mass m_working_methanol = 9608223;
   //geometry for both solar salt tanks
   parameter SI.Diameter D_tank_solsalt = 37.395499;
   parameter SI.Height h_tank_solsalt = 11.218649;
@@ -132,7 +125,7 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Height x_tank_coldliq_min = 0.4;
   //--------------------------TANK 1
   //nominal
-  parameter SI.Temperature T_tank1_nom = from_degC(565.6);
+  parameter SI.Temperature T_tank1_nom = from_degC(565);
   parameter SI.Pressure p_tank1_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank1_nom = 1730.66;
   parameter SI.Mass m_tank1_min = x_tank_solsalt_min*A_cross_tank_solsalt*rho_tank1_nom;
@@ -152,6 +145,7 @@ model DynamicMalta_charge_discharge_varspeed
   //losses
   SI.HeatFlowRate Q_dot_to_amb_tank1(displayUnit = "kW") "Heat Flow to ambient";
   Real Q_div_A_tank1;
+  SI.Area A_tank1_loss;
   //flows
   SI.MassFlowRate m_out_tank1;
   SI.MassFlowRate m_in_tank1;
@@ -159,7 +153,7 @@ model DynamicMalta_charge_discharge_varspeed
   SI.SpecificEnthalpy h_in_tank1;
   //--------------------------TANK 2
   //nominal
-  parameter SI.Temperature T_tank2_nom = from_degC(271.5);
+  parameter SI.Temperature T_tank2_nom = from_degC(279);
   parameter SI.Pressure p_tank2_nom = 101325 "unpressurized tank";
   parameter SI.Density rho_tank2_nom = 1917.33;
   parameter SI.Mass m_tank2_min = x_tank_solsalt_min*A_cross_tank_solsalt*rho_tank2_nom;
@@ -179,6 +173,7 @@ model DynamicMalta_charge_discharge_varspeed
   //losses
   SI.HeatFlowRate Q_dot_to_amb_tank2(displayUnit = "kW") "Heat Flow to ambient";
   Real Q_div_A_tank2;
+  SI.Area A_tank2_loss;  
   //flows
   SI.MassFlowRate m_out_tank2;
   SI.MassFlowRate m_in_tank2;
@@ -325,7 +320,7 @@ model DynamicMalta_charge_discharge_varspeed
   WorkingFluid.ThermodynamicState outlet_coldside_HEX3_charge(p(start = 100000), T(start = T_tank3_nom), phase(start = 1)) "Medium properties ";
   //-------------HEX rejection charge//
   SI.HeatFlowRate Q_dot_HEXrej_charge(displayUnit = "MW");
-    SI.Heat Q_HEXrej_charge(displayUnit = "MWh", start = 0, fixed = true);
+  SI.Heat Q_HEXrej_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_loss_irr_HEXrej_charge(displayUnit = "MW");
   SI.Energy E_loss_irr_HEXrej_charge(displayUnit = "MWh", start = 0, fixed = true);
   //-------------COMPRESSOR CHARGE//
@@ -338,12 +333,14 @@ model DynamicMalta_charge_discharge_varspeed
   //design
   parameter Real beta_CO_nom_charge = 4.592 "design compression ratio";
   parameter Real n_CO_nom_charge = 3000 "design speed";
-  parameter SI.Efficiency eta_is_CO_nom_charge = 0.903175 "design isentropic efficiency";
-  SI.Temperature T_4_nom_charge = from_degC(267.533) "state 4 temperature";
+  //parameter SI.Efficiency eta_is_CO_nom_charge = 0.90385 "design isentropic efficiency";
+ parameter SI.Efficiency eta_is_CO_nom_charge = 0.90 "design isentropic efficiency";
+ //parameter SI.Efficiency eta_is_CO_nom_charge = 0.86 "design isentropic efficiency";
+  SI.Temperature T_4_nom_charge = from_degC(274) "state 4 temperature";
   SI.Pressure p_4_nom_charge = 100000 "state 4 pressure";
   //actual
   Real beta_CO_charge(start = beta_CO_nom_charge) "absolute compression ratio";
-  Real n_CO_charge(start = n_CO_charge_start) "actual speed";
+  parameter Real n_CO_charge = 3000 "actual speed";
   SI.Efficiency eta_is_CO_charge "absolute isentropic efficiency";
   //reduced
   Real beta_CO_red_charge(start = 1) "reduced compression ratio";
@@ -379,7 +376,7 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Power P_mech_TU_charge(displayUnit = "MW");
   SI.Power P_loss_irr_TU_charge(displayUnit = "MW");
   SI.Energy E_loss_irr_TU_charge(displayUnit = "MWh", start = 0, fixed = true);
-    //limits
+  //limits
   parameter Real beta_TU_red_charge_min = 0.4;
   parameter Real beta_TU_red_charge_max = 1.4;
   //-------------SYSTEM CHARGE//
@@ -414,13 +411,13 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Temperature T_4_a_charge_guess(start = from_degC(18.14)) "state 4 temperature";
   WorkingFluid.ThermodynamicState state_4_a_charge_guess(p(start = 456931), T(start = from_degC(18.1))) "thermodynamic state";
   //state 4 charge guess
-  SI.Temperature T_4_charge_guess(start = from_degC(267.533)) "state 4 temperature";
+  SI.Temperature T_4_charge_guess(start = from_degC(274)) "state 4 temperature";
   //WorkingFluid.ThermodynamicState state_4_charge_guess(p(start = p_fix_charge), T(start = from_degC(267.533))) "thermodynamic state";
   WorkingFluid.ThermodynamicState state_4_charge_guess(p(start = 100000), T(start = from_degC(267.533))) "thermodynamic state";
   WorkingFluid.SpecificEnthalpy h_4_charge_guess(start = 671458) "enthalpy";
   WorkingFluid.SpecificEntropy s_4_charge_guess(start = 4495) "spec. entropy";
   //state 4 charge
-  SI.Temperature T_4_charge(start = from_degC(267.533)) "state 4 temperature";
+  SI.Temperature T_4_charge(start = from_degC(274)) "state 4 temperature";
   // WorkingFluid.ThermodynamicState state_4_charge(p(start = p_fix_charge), T(start = from_degC(267.533))) "thermodynamic state";
   WorkingFluid.ThermodynamicState state_4_charge(p(start = 100000), T(start = from_degC(267.533))) "thermodynamic state";
   WorkingFluid.SpecificEnthalpy h_4_charge(start = 671458) "enthalpy";
@@ -540,7 +537,7 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Energy E_loss_irr_HEX3(displayUnit = "MWh", start = 0, fixed = true);
   //-------------HEX 4 rejection discharge//
   SI.HeatFlowRate Q_dot_HEXrej(displayUnit = "MW");
-   SI.Heat Q_HEXrej(displayUnit = "MWh", start = 0, fixed = true);
+  SI.Heat Q_HEXrej(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_loss_irr_HEXrej(displayUnit = "MW");
   SI.Energy E_loss_irr_HEXrej(displayUnit = "MWh", start = 0, fixed = true);
   //-------------COMPRESSOR DISCHARGE/
@@ -551,11 +548,11 @@ model DynamicMalta_charge_discharge_varspeed
   parameter Real beta_CO_nom = 5.911 "design compression ratio";
   parameter Real n_CO_nom = 3000 "design speed";
   parameter SI.Efficiency eta_is_CO_nom = 0.88 "design isentropic efficiency";
-  SI.Temperature T_1_nom = from_degC(-53.76) "state 1 temperature";
+  SI.Temperature T_1_nom = from_degC(-52) "state 1 temperature";
   parameter SI.Pressure p_1_nom = 100000 "state 1 pressure";
   //actual
   Real beta_CO(start = beta_CO_nom) "absolute compression ratio";
-  Real n_CO(start = n_CO_start) "actual speed";
+  parameter Real n_CO = 3000 "actual speed";
   SI.Efficiency eta_is_CO "absolute isentropic efficiency";
   //reduced
   Real beta_CO_red(start = 1) "reduced compression ratio";
@@ -575,7 +572,7 @@ model DynamicMalta_charge_discharge_varspeed
   parameter Real beta_TU_nom = 5.445 "design expansion ratio";
   parameter Real n_TU_nom = 3000 "design speed";
   parameter SI.Efficiency eta_is_TU_nom = 0.92 "design isentropic efficiency";
-  parameter SI.Temperature T_3_nom = from_degC(555) "design turbine inlet temperature";
+  parameter SI.Temperature T_3_nom = from_degC(556) "design turbine inlet temperature";
   parameter SI.Pressure p_3_nom = 572336 "design turbine inlet pressure";
   //actual
   Real beta_TU(start = beta_TU_nom) "absolute expansion ratio";
@@ -594,19 +591,20 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Power P_mech_shaft(displayUnit = "MW");
   SI.HeatFlowRate Q_pump(displayUnit = "MW");
   Real eta_heat_to_power(start = 1);
-  Real eta_heat_to_power_sys(start = 1);  
+  Real eta_heat_to_power_sys(start = 1);
   Real work_ratio;
-   //limits
+  //limits
   parameter Real beta_TU_red_min = 0.4;
   parameter Real beta_TU_red_max = 1.4;
   //-------------STATES//
   //-------------Discharge//
-  //fixed temperature point 
-  SI.Temperature T_1_a = from_degC(34.105) "outlet temperature after rejec";
-  //fixed pressure point 
+  //fixed temperature point
+SI.Temperature T_1_a = from_degC(34) "outlet temperature after rejec";
+  //SI.Temperature T_1_a = from_degC(32) "outlet temperature after rejec";
+  //fixed pressure point
   SI.Pressure p_1 = p_fix "state 1 pressure";
   //STATE 1 a discharge
-  SI.Pressure p_1_a "pressure after Heat rejection ";
+  SI.Pressure p_1_a(start = 103605) "pressure after Heat rejection ";
   WorkingFluid.ThermodynamicState state_1_a "thermodynamic state after Heat rejection ";
   WorkingFluid.SpecificEnthalpy h_1_a(start = 433595) "turbine-side recuperation after Heat rejection ";
   WorkingFluid.SpecificEntropy s_1_a "turbine-side recuperation after Heat rejection ";
@@ -648,24 +646,33 @@ model DynamicMalta_charge_discharge_varspeed
   WorkingFluid.SpecificEnthalpy h_4_is(start = 657274) "turbine outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_is "isentropic turbine outlet spec. entropy";
   //STATE 4 discharge
-  SI.Pressure p_4(start = 105039) " pressure at turb outlet";
+  SI.Pressure p_4(start = 105039) "pressure at turb outlet";
   WorkingFluid.SpecificEnthalpy h_4(start = 683188) "turbine outlet enthalpy";
-  SI.Temperature T_4(start = from_degC(270)) "outlet temperature of turbine";
+  SI.Temperature T_4(start = from_degC(279)) "outlet temperature of turbine";
   WorkingFluid.ThermodynamicState state_4(p(start = 105039), T(start = from_degC(270))) "thermodynamic state of turbine outlet";
   WorkingFluid.SpecificEntropy s_4 "turbine outlet spec. entropy";
   //STATE 4 guess discharge
-  SI.Temperature T_4_guess(start = from_degC(270)) "outlet temperature of turbine";
+  SI.Temperature T_4_guess(start = from_degC(279)) "outlet temperature of turbine";
   WorkingFluid.ThermodynamicState state_4_guess(p(start = 105039), T(start = from_degC(270))) "thermodynamic state of turbine outlet";
   WorkingFluid.SpecificEnthalpy h_4_guess(start = 683188) "turbine outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_guess "turbine outlet spec. entropy";
   //STATE 4 a discharge
-  SI.Pressure p_4_a(start = 103332) " pressure at recuperation outlet";
+  SI.Pressure p_4_a(start = 103332) "pressure at recuperation outlet";
   SI.Temperature T_4_a(start = from_degC(270)) "outlet temperature after recuperation";
   WorkingFluid.ThermodynamicState state_4_a "thermodynamic state of turbine-side recuperation outlet";
   WorkingFluid.SpecificEnthalpy h_4_a(start = 520945) "turbine-side recuperation outlet enthalpy";
   WorkingFluid.SpecificEntropy s_4_a "turbine-side recuperation outlet spec. entropy";
   //------------------ELECTRICAL MACHINERY
-    //------------------TRANSFORMER
+  //Grid connection point
+  Modelica.Units.SI.Power P_GC(displayUnit = "MW");
+  parameter Modelica.Units.SI.ReactivePower Q_GC_set(displayUnit = "Mvar") = -32.5*1000*1000;
+  Modelica.Units.SI.ReactivePower S_GC;
+  Real cos_phi_GC(start = 0.95);
+  //connection point set parameters
+  parameter SI.Voltage U_TR_set = 220*1000;
+  parameter SI.Angle phi_TR_set = 0;
+  SI.ReactivePower Q_TR_set(displayUnit = "MW", start = -50*1000*1000);
+  //------------------TRANSFORMER
   //transformer parameters
   parameter SI.ApparentPower S_TR_nom(displayUnit = "MVA") = 208*1000*1000;
   parameter SI.Voltage U_TR_HV_nom(displayUnit = "kV") = 220*1000 "RMS voltage of the high voltage side (fixed by upper grid), line-to-line";
@@ -677,10 +684,6 @@ model DynamicMalta_charge_discharge_varspeed
   parameter SI.Power P_TR_loss_OC(displayUnit = "kW") = (P_TR_loss_OC_div_S_TR_nom/100)*S_TR_nom;
   parameter Real u_TR_SC = 11.875135026230133;
   parameter SI.Current I_TR_max = 537.638 "maximum transformer current";
-  //connection point set parameters
-  parameter SI.Voltage U_TR_set = 220*1000;
-  parameter SI.Angle phi_TR_set = 0;
-  parameter SI.ReactivePower Q_TR_set = -50*1000*1000;
   SI.Angle phi_U_HV(start = 0) "Phase of voltage at high-voltage side of transformer";
   SI.Angle phi_U_HV_min_I_HV "Phase shift between voltage and current high-voltage side of transformer";
   SI.Angle phi_I_HV "Phase of current at high-voltage side of transformer";
@@ -760,18 +763,18 @@ model DynamicMalta_charge_discharge_varspeed
   SI.Energy E_SM_loss(displayUnit = "MWh", start = 0, fixed = true);
   //stator-side variables
   SI.ReactivePower Q_SM_ST(displayUnit = "Mvar");
-  SI.ComplexVoltage U_SM_ST(re(start = U_SM_ST_nom/sqrt(3)));
+  SI.ComplexVoltage U_SM_ST(re(start = U_SM_ST_nom/sqrt(3)), im(start=-903));
   //per phase value!
   SI.Power P_SM_ST(displayUnit = "MW");
   Complex S_SM_ST;
-    SI.ApparentPower S_SM_ST_abs(displayUnit = "MVA");
-  SI.ComplexCurrent I_SM_ST "stator side complex current";
+  SI.ApparentPower S_SM_ST_abs(displayUnit = "MVA", start = S_SM_nom);
+  SI.ComplexCurrent I_SM_ST(re(start = 6348), im(start = 1215)) "stator side complex current";
   //air-gap
-  SI.ComplexVoltage U_SM_h(re(start = U_SM_ST_nom/sqrt(3)));
+  SI.ComplexVoltage U_SM_h(re(start = U_SM_ST_nom/sqrt(3)), im(start=-3292));
   Complex S_SM_h;
   SI.Power P_airgap(displayUnit = "MW");
   //excitation
-  SI.ComplexVoltage U_P(re(start = U_SM_ST_nom/sqrt(3)));
+  SI.ComplexVoltage U_P(re(start = 12264), im(start=-16807));
   SI.ComplexCurrent I_FD_ref "excitation current, referred to stator side";
   SI.Voltage U_FD "excitation voltage";
   SI.Power P_excitation(displayUnit = "MW") "power required for DC excitation";
@@ -784,53 +787,36 @@ model DynamicMalta_charge_discharge_varspeed
   //mechanical
   NonSI.AngularVelocity_rpm n_RO "rotor speed";
   SI.AngularVelocity omega_SM;
-  SI.Power P_mech_RO(displayUnit = "MW");
+  SI.Power P_mech_RO(start=170*1000*1000,displayUnit = "MW");
   //losses
-  SI.Power P_SM_loss(displayUnit = "MW") "total losses";
+  SI.Power P_SM_loss(start=2.04*1000*1000,displayUnit = "MW") "total losses";
   SI.Velocity v_RO "rotor perimeter speed";
   SI.Power P_windage_ventilation(displayUnit = "MW") "losses due to windage and ventilation";
-  SI.Power P_additional(displayUnit = "MW") "additional losses";
+  SI.Power P_additional(start=0.17*1000*1000,displayUnit = "MW") "additional losses";
   SI.Power P_FE_ST_teeth(displayUnit = "MW") "iron losses in stator teeth";
   SI.Power P_FE_ST_yoke(displayUnit = "MW") "iron losses in stator yoke";
   SI.Power P_FE(displayUnit = "MW") "total iron losses";
   SI.Power P_Ohmic_Stator(displayUnit = "MW") "ohmic losses stator";
-  //Varspeed Components
-  SI.Power P_PE_switching(displayUnit = "MW") "switching losses";
-  SI.Power P_PE_onstate(displayUnit = "MW") "on-state losses";
-  SI.Power P_PE_passive(displayUnit = "MW") "passive losses";
-  SI.Power P_PE_loss_total(displayUnit = "MW") "total power electronic losses";
-  SI.Efficiency eta_PE "efficiency power electronics";
-  SI.Power P_PE_TR(displayUnit = "MW") "trafo side of power electronics";
-  SI.Power P_PE_SM(displayUnit = "MW") "synchronous machine side of power electronics";
-  SI.Energy E_PE_loss(displayUnit = "MWh", start = 0, fixed = true);
   Modelica.Blocks.Continuous.SecondOrder T4_a_guess_control(D = 0.4, w = 0.5) annotation(
-    Placement(transformation(origin = {-74, -40}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {-66, 46}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control_discharge(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {82, -10}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {56, 50}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T3_guess_control_discharge(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {82, -46}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {58, -2}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T1_guess_control_discharge(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {82, -84}, extent = {{-10, -10}, {10, 10}})));
+    Placement(transformation(origin = {58, -40}, extent = {{-10, -10}, {10, 10}})));
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
-    Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
- /*
-  Modelica.Blocks.Continuous.LimPID PID_varspeed_charge(controllerType = Modelica.Blocks.Types.SimpleController.PID, Ti = 1, k = 0.00001, yMax = 3500, yMin = 1500, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = n_CO_charge_start, wp = 0.9, wd = 0.1) annotation(
-    Placement(transformation(origin = {4, 70}, extent = {{-10, -10}, {10, 10}})));
-  Modelica.Blocks.Sources.Ramp ramp(height = -500, duration = 3500, offset = 3000, startTime = 100) annotation(
-    Placement(transformation(origin = {78, 76}, extent = {{-10, -10}, {10, 10}})));
- */
-
-   Modelica.Blocks.Continuous.LimPID PID_varspeed(controllerType = Modelica.Blocks.Types.SimpleController.PID, Ti = 1, k = -0.00001, yMax = 3500, yMin = 1500, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = n_CO_start, wp = 0.9, wd = 0.1) annotation(
-      Placement(transformation(origin = {-4, 18}, extent = {{-10, -10}, {10, 10}})));
-
+    Placement(transformation(origin = {-64, -38}, extent = {{-10, -10}, {10, 10}})));
+  Modelica.Blocks.Sources.Pulse input_pulse(amplitude = 1, period = 72000, offset = 1, startTime = 36000) annotation(
+    Placement(transformation(origin = {-18, -68}, extent = {{-10, -10}, {10, 10}})));
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
 //charge
-  T_4_charge_guess = from_degC(274.5);
+  T_4_charge_guess = from_degC(274);
   T_4_a_charge_guess = from_degC(18.14);
 //discharge
-  T_4_guess = from_degC(270);
+  T_4_guess = from_degC(279);
   T_1_guess = from_degC(-52.760);
   T_3_guess = from_degC(556);
 //tanks
@@ -843,27 +829,14 @@ initial equation
   m_tank4 = m_tank4_start;
   T_tank4 = T_tank4_start;
 equation
+  Mode = input_pulse.y;
 //--------------------------EQUATIONS SYSTEM-----------------------------//
   state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
-//PID charge
-/*
-  P_mech_RO = PID_varspeed_charge.u_s;
-  P_mech_shaft_charge = PID_varspeed_charge.u_m;
-  n_CO_charge = PID_varspeed_charge.y;
-  */
- n_CO_charge=3000;
-//PID
-
-  P_mech_RO = PID_varspeed.u_s;
-  P_mech_shaft = PID_varspeed.u_m;
-  n_CO = PID_varspeed.y;
-  
-  //n_CO = 3000;
   P_elec_charge = P_TR_HV;
   P_elec = P_TR_HV;
 //-------------SYSTEM TANKS//
   exergy_total_tanks = exergy_tank1 + exergy_tank2 + exergy_tank3 + exergy_tank4;
-    exergy_hot_tanks = exergy_tank1 + exergy_tank2;
+  exergy_hot_tanks = exergy_tank1 + exergy_tank2;
   exergy_cold_tanks = exergy_tank3 + exergy_tank4;
   int_energy_total_tanks = int_energy_tank1 + int_energy_tank2 + int_energy_tank3 + int_energy_tank4;
   Q_dot_hightemp_res = der(int_energy_tank1 + int_energy_tank2);
@@ -875,60 +848,60 @@ equation
   m_dot_div_p_charge = m_dot_WF_charge/p_4_charge;
   der(exergy_total_loss_irr_charge) = P_total_loss_irr_charge;
   P_total_loss_irr_charge = P_loss_irr_HEX1_charge + P_loss_irr_HEX2_charge + P_loss_irr_HEX3_charge + P_loss_irr_HEXrej_charge + P_loss_irr_CO_charge + P_loss_irr_TU_charge;
-    der(E_mech_shaft_charge) = P_mech_shaft_charge;
+  der(E_mech_shaft_charge) = P_mech_shaft_charge;
   hot_to_cold_mass_flow_ratio_charge = m_dot_solsalt_HEX1_charge/m_dot_methanol_HEX3_charge;
-  COP_system_charge=Q_pump_charge/P_elec_charge;  
-    E_total_loss_irr_charge = E_loss_irr_CO_charge + E_loss_irr_TU_charge + E_loss_irr_HEX1_charge + E_loss_irr_HEX2_charge + E_loss_irr_HEX2_charge + E_loss_irr_HEXrej_charge + E_TR_loss + E_SM_loss+E_PE_loss;
+  E_total_loss_irr_charge = E_loss_irr_CO_charge + E_loss_irr_TU_charge + E_loss_irr_HEX1_charge + E_loss_irr_HEX2_charge + E_loss_irr_HEX2_charge + E_loss_irr_HEXrej_charge + E_TR_loss + E_SM_loss;
 //-------------SYSTEM DISCHARGE//
   P_mech_shaft = P_mech_CO + P_mech_TU;
   Q_pump = -Q_dot_HEX1;
   eta_heat_to_power = P_mech_shaft/Q_pump;
-  eta_heat_to_power_sys = P_elec/Q_pump;  
+  eta_heat_to_power_sys = P_elec/Q_pump;
   work_ratio = abs(P_mech_TU)/P_mech_CO;
   m_dot_div_p = m_dot_WF/p_1;
   der(exergy_total_loss_irr) = P_total_loss_irr;
   P_total_loss_irr = P_loss_irr_HEX1 + P_loss_irr_HEX2 + P_loss_irr_HEX3 + P_loss_irr_HEXrej + P_loss_irr_CO + P_loss_irr_TU;
-    der(E_mech_shaft) = P_mech_shaft;
+  der(E_mech_shaft) = P_mech_shaft;
   hot_to_cold_mass_flow_ratio = m_dot_solsalt_HEX1/m_dot_methanol_HEX3;
-  COP_system=Q_pump/P_elec;
-   E_total_loss_irr = E_loss_irr_CO + E_loss_irr_TU + E_loss_irr_HEX1 + E_loss_irr_HEX2 + E_loss_irr_HEX3 + E_loss_irr_HEXrej + E_TR_loss + E_SM_loss+E_PE_loss;
+  E_total_loss_irr = E_loss_irr_CO + E_loss_irr_TU + E_loss_irr_HEX1 + E_loss_irr_HEX2 + E_loss_irr_HEX3 + E_loss_irr_HEXrej + E_TR_loss + E_SM_loss;
 //MODE 1 CHARGE
   if Mode == 1 then
     der(Elec_energy_charge) = P_elec_charge;
     der(Elec_energy_discharge) = 0;
-    P_TR_HV = P_set_charge;
-    Q_TR_HV = Q_TR_set;
+    Q_GC_set = Q_TR_set;
     eta_transformer = abs(P_TR_LV)/(abs(P_TR_LV) + P_TR_loss);
     I_TR_HV + I_TR_LV_transferred = I_mag;
     P_additional = k_additional*abs(P_mech_RO);
     P_SM_loss = abs(P_SM_ST) - abs(P_mech_RO);
     P_mech_RO = P_airgap - P_windage_ventilation - P_additional - P_FE - P_excitation;
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
-    U_SM_h=Complex(0,X_h)*I_SM_ST +U_P ;
+    U_SM_h = Complex(0, X_h)*I_SM_ST + U_P;
     eta_SM = abs(P_mech_RO)/abs(P_SM_ST);
-    -P_PE_SM = P_PE_TR - P_PE_loss_total;
-    eta_PE = abs(P_PE_SM)/abs(P_PE_TR);
+//connection to thermodynamic cycle
+    P_mech_shaft_charge = P_mech_RO;
+    COP_system_charge = Q_pump_charge/P_elec_charge;
+    COP_system = Q_pump/P_elec;
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = P_elec;
-    P_TR_HV = P_set;
-    Q_TR_HV = Q_TR_set;
+    Q_GC_set = Q_TR_set;
     eta_transformer = abs(P_TR_HV)/(abs(P_TR_HV) + P_TR_loss);
     I_TR_HV + I_TR_LV_transferred = I_mag;
     P_additional = k_additional*abs(P_mech_RO);
     P_SM_loss = abs(P_mech_RO) - abs(P_SM_ST);
     P_mech_RO = P_airgap - (P_windage_ventilation + P_additional + P_FE + P_excitation);
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
-    U_SM_h=Complex(0,X_h)*I_SM_ST + U_P;
+    U_SM_h = Complex(0, X_h)*I_SM_ST + U_P;
     eta_SM = abs(P_SM_ST)/abs(P_mech_RO);
-    -P_PE_SM = P_PE_TR - P_PE_loss_total;
-    eta_PE = abs(P_PE_TR)/abs(P_PE_SM);
+//connection to thermodynamic cycle
+    P_mech_shaft = P_mech_RO;
+    COP_system_charge = Q_pump_charge/P_elec_charge;
+    COP_system = Q_pump/P_elec;
 //MODE 0 HOLD
   else
     der(Elec_energy_charge) = 0;
     der(Elec_energy_discharge) = 0;
-    Q_TR_HV = 0;
+    Q_TR_set = 0;
     P_TR_HV = 0;
     eta_transformer = 0;
     I_TR_HV + I_TR_LV_transferred = Complex(0, 0);
@@ -937,8 +910,9 @@ equation
     I_SM_ST = Complex(0, 0);
     U_P = Complex(0, 0);
     eta_SM = 0;
-    P_PE_SM = 0;
-    eta_PE = 0;
+    P_mech_RO = 0;
+    COP_system_charge = 0;
+    COP_system = 0;
   end if;
 //--------------------------EQUATIONS TANKS-----------------------------//
 //-------------TANK 1//
@@ -975,8 +949,9 @@ equation
   solsalt_tank1.T = T_tank1;
 //losses
   Q_div_A_tank1 = (0.00017*(T_tank1 - 273.15) + 0.012)*1000;
-  Q_dot_to_amb_tank1 = -Q_div_A_tank1*A_W_tank_solsalt;
-//Q_dot_to_amb_tank1 = 0;
+  Q_dot_to_amb_tank1 = -Q_div_A_tank1*A_tank1_loss;
+  A_tank1_loss=x_tank1*pi*D_tank_solsalt+ A_cross_tank_solsalt;
+ //Q_dot_to_amb_tank1 = 0;
 //-------------TANK 2//
 //nominal
   solsalt_tank2_nom = HotTESLiquid.setState_pT(p_tank2_nom, T_tank2_nom);
@@ -1011,8 +986,9 @@ equation
   solsalt_tank2.T = T_tank2;
 //losses
   Q_div_A_tank2 = (0.00017*(T_tank2 - 273.15) + 0.012)*1000;
-  Q_dot_to_amb_tank2 = -Q_div_A_tank2*A_W_tank_solsalt;
-//Q_dot_to_amb_tank2 = 0;
+  Q_dot_to_amb_tank2 = -Q_div_A_tank2*A_tank2_loss;
+  A_tank2_loss=x_tank2*pi*D_tank_solsalt+ A_cross_tank_solsalt;
+ //Q_dot_to_amb_tank2 = 0;
 //-------------TANK 3//
 //nominal
   coldliq_tank3_nom = ColdTESLiquid.setState_pT(p_tank3_nom, T_tank3_nom);
@@ -1245,7 +1221,7 @@ equation
   der(E_loss_irr_HEX3_charge) = P_loss_irr_HEX3_charge;
 //-------------HEX 4 rejection charge//
   Q_dot_HEXrej_charge = (h_2_charge - h_2_a_charge)*m_dot_WF_charge;
-    der(Q_HEXrej_charge) = Q_dot_HEXrej_charge;
+  der(Q_HEXrej_charge) = Q_dot_HEXrej_charge;
 //irrev
   P_loss_irr_HEXrej_charge = T0*((m_dot_WF_charge*(s_2_a_charge - s_2_charge - ((h_2_a_charge - h_2_charge)/T0))));
   der(E_loss_irr_HEXrej_charge) = P_loss_irr_HEXrej_charge;
@@ -1330,7 +1306,7 @@ equation
   beta_TU_red = beta_TU/beta_TU_nom;
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
   G_TU_red = alpha*sqrt((1/(beta_TU^2) - 1)/(1/(beta_TU_nom^2) - 1));
- eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
+  eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
 //other turbine equations
   beta_TU = p_3/p_4;
   eta_is_TU = (h_3 - h_4)/(h_3 - h_4_is);
@@ -1344,12 +1320,7 @@ equation
 //off-design
   UA_HEX1/UA_HEX1_nom = ((m_dot_WF^0.8*m_dot_solsalt_HEX1^0.8)/(m_dot_WF_nom^0.8*m_dot_solsalt_HEX1_nom^0.8))*((m_dot_WF_nom^0.8 + m_dot_solsalt_HEX1_nom^0.8)/(m_dot_WF^0.8 + m_dot_solsalt_HEX1^0.8));
 //discharge: inlet cold side= state_3_a inlet hot side=solsalt_tank1_state
-//MODE 1 CHARGE
-  if Mode == 1 then
-    outlet_hotside_guess_HEX1 = HotTESLiquid.setState_pT(p_tank2_nom, T_tank2_nom);
-  else
-    outlet_hotside_guess_HEX1 = HotTESLiquid.setState_pT(p_tank2_nom, T_3_a + 9);
-  end if;
+  outlet_hotside_guess_HEX1 = HotTESLiquid.setState_pT(p_tank2_nom, T_3_a + 9);
 //NaK
   outlet_coldside_guess_HEX1 = WorkingFluid.setState_pT(p_3, solsalt_tank1_state.T - 9);
 //WF
@@ -1376,13 +1347,7 @@ equation
 // cold side energy balance
   Q_dot_HEX1 = m_dot_WF*(h_cold_out_HEX1 - state_3_a.h);
 //set outlets
-// outlet_hotside_HEX1 = HotTESLiquid.setState_ph(p_tank2_nom, h_hot_out_HEX1);
-//MODE 1 CHARGE
-  if Mode == 1 then
-    outlet_hotside_HEX1 = HotTESLiquid.setState_ph(p_tank2_nom, solsalt_tank2_nom.h);
-  else
-    outlet_hotside_HEX1 = HotTESLiquid.setState_ph(p_tank2_nom, h_hot_out_HEX1);
-  end if;
+  outlet_hotside_HEX1 = HotTESLiquid.setState_ph(p_tank2_nom, h_hot_out_HEX1);
 //NaK
   outlet_coldside_HEX1 = WorkingFluid.setState_ph(p_3, h_cold_out_HEX1);
 //WF
@@ -1535,6 +1500,10 @@ equation
   h_4_a = WorkingFluid.specificEnthalpy(state_4_a);
   s_4_a = WorkingFluid.specificEntropy(state_4_a);
 //------------------ELECTRICAL MACHINERY
+  S_GC = sqrt(P_GC^2 + Q_GC_set^2);
+  cos_phi_GC = P_GC/S_GC;
+  Q_TR_HV = Q_TR_set;
+  P_TR_HV = P_GC;
 //------------------TRANSFORMER
 //connection point to grid
   phi_U_HV = phi_TR_set;
@@ -1594,14 +1563,14 @@ equation
 //Trafo side Interfaces
   0 = Q_TR_LV + Q_SM_ST;
   U_SM_ST = U_TR_LV;
-  0 = P_PE_SM + P_SM_ST;
+  0 = P_TR_LV + P_SM_ST;
   S_SM_ST = Complex(P_SM_ST, Q_SM_ST);
-    S_SM_ST_abs=ComplexMath.abs(S_SM_ST);
+  S_SM_ST_abs = ComplexMath.abs(S_SM_ST);
 //airgap
   U_SM_ST = Complex(R_SM_ST, X_sigma_ST)*I_SM_ST + U_SM_h;
   S_SM_h = 3*U_SM_h*ComplexMath.conj(I_SM_ST);
   P_airgap = S_SM_h.re;
-      P_Ohmic_Stator=P_SM_ST-P_airgap;
+  P_Ohmic_Stator = P_SM_ST - P_airgap;
 //excitation
   U_P = Complex(0, 1)*X_h*I_FD_ref;
 //
@@ -1617,14 +1586,6 @@ equation
   P_FE = (f/50)^1.3*(P_FE_ST_teeth + P_FE_ST_yoke);
 //energy
   der(E_SM_loss) = P_SM_loss;
-//varspeed Component
-  P_PE_switching = (3.2895346571585593 + 3.2517712433225388*abs(P_PE_TR/(10^6)) + 0.013684509141966374*(abs(P_PE_TR/(10^6)))^2)*100;
-  P_PE_onstate = (2.3238331603144333*abs(P_PE_TR/(10^6)) + 1.6916773078422493);
-  P_PE_passive = 0.003*abs(P_PE_TR);
-  P_PE_loss_total = (P_PE_switching + P_PE_onstate + P_PE_passive)*2;
-//trafo side
-  0 = P_PE_TR + P_TR_LV;
-  der(E_PE_loss) = P_PE_loss_total;
 //--------------------------COMPONENT MANAGEMENT--------------------------//
 //MODE 1 CHARGE
   if Mode == 1 then
@@ -1654,7 +1615,7 @@ equation
     if beta_CO_red_charge < beta_CO_red_charge_min then
       terminate("choke line reached");
     end if;
-        if beta_TU_red_charge > beta_TU_red_charge_max then
+    if beta_TU_red_charge > beta_TU_red_charge_max then
       terminate("maximum red pressure ratio reached");
     end if;
     if beta_TU_red_charge < beta_TU_red_charge_min then
@@ -1666,13 +1627,13 @@ equation
     if n_CO_red_charge > 1.05 then
       terminate("compressor reduced relative speed too high");
     end if;
-    //electrical machines      
+//electrical machines
     if S_TR_HV_abs > S_TR_nom then
-    terminate("maximum transformer apparent power reached");
+      terminate("maximum transformer apparent power reached");
     end if;
-   if S_SM_ST_abs > S_SM_nom then
-    terminate("maximum synchronous machine apparent power reached");
-    end if;    
+    if S_SM_ST_abs > S_SM_nom then
+      terminate("maximum synchronous machine apparent power reached");
+    end if;
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
 //tanks
@@ -1701,7 +1662,7 @@ equation
     if beta_CO_red < beta_CO_red_min then
       terminate("choke line reached");
     end if;
-        if beta_TU_red > beta_TU_red_max then
+    if beta_TU_red > beta_TU_red_max then
       terminate("maximum red pressure ratio reached");
     end if;
     if beta_TU_red < beta_TU_red_min then
@@ -1713,12 +1674,12 @@ equation
     if n_CO_red > 1.05 then
       terminate("compressor reduced relative speed too high");
     end if;
-    //electrical machines    
+//electrical machines
     if S_TR_HV_abs > S_TR_nom then
-    terminate("maximum transformer apparent power reached");
+      terminate("maximum transformer apparent power reached");
     end if;
-   if S_SM_ST_abs > S_SM_nom then
-    terminate("maximum synchronous machine apparent power reached");
+    if S_SM_ST_abs > S_SM_nom then
+      terminate("maximum synchronous machine apparent power reached");
     end if;
 //MODE 0 HOLD
   else
@@ -1730,7 +1691,5 @@ equation
     end if;
   end if;
   annotation(
-    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Variable speed</div><div>Heat loss enabled</div><div>turbomachinery updated with limits</div></body></html>"),
-    __OpenModelica_commandLineOptions = "--matchingAlgorithm=PFPlusExt --indexReductionMethod=dynamicStateSelection -d=initialization,evaluateAllParameters,NLSanalyticJacobian",
-    __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
-end DynamicMalta_charge_discharge_varspeed;
+    Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Heat loss active</div><div><br></div><div><br></div></body></html>"));
+end DynamicMalta_charge_discharge_charge_discharge_cycling_V2;

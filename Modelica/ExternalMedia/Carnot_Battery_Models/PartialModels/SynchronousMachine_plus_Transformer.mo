@@ -13,7 +13,7 @@ model SynchronousMachine_plus_Transformer
   parameter Integer Mode = 1;
   Modelica.Units.SI.Power P_GC_set(displayUnit = "MW");  
   parameter SI.Power P_set(displayUnit = "MW") = -42*1000*1000;
-  parameter SI.Power P_set_charge(displayUnit = "MW") = 150*1000*1000;
+  parameter SI.Power P_set_charge(displayUnit = "MW") = 178*1000*1000;
   //connection point set parameters
   parameter SI.Voltage U_TR_set = 220*1000;
   parameter SI.Angle phi_TR_set = 0;
@@ -100,7 +100,6 @@ model SynchronousMachine_plus_Transformer
   parameter Real tau_p = 1.4451326206513049 "pole pitch";
   //Equivalent circuit parameters
   parameter SI.Inductance L_sigma_ST = 0.0011957997612770178;
-  parameter SI.Resistance R_ST = 0.005963040865384616;
   parameter SI.Inductance L_h = 0.006776198647236435;
   parameter SI.Inductance L_d = 0.007971998408513453;
   parameter Integer N_FD = 72 "number of exitation field windings";
@@ -177,12 +176,11 @@ equation
 //MODE 2 DISCHARGE
   elseif Mode == 2 then
     P_GC_set=P_set;  
-    Q_TR_HV = Q_TR_set;
-    P_TR_HV = P_set;
+       P_TR_HV = P_set;
+       Q_TR_HV = Q_TR_set;
     eta_transformer = abs(P_TR_HV)/(abs(P_TR_HV) + P_TR_loss);
     I_TR_HV + I_TR_LV_transferred = I_mag;
     P_additional = k_additional*abs(P_mech_RO);
-//change
     P_SM_loss = abs(P_mech_RO) - abs(P_SM_ST);
     P_mech_RO = P_airgap - (P_windage_ventilation + P_additional + P_FE + P_excitation);
     S_SM_ST = 3*U_SM_ST*ComplexMath.conj(I_SM_ST);
@@ -268,6 +266,7 @@ equation
   U_SM_ST = Complex(R_SM_ST, X_sigma_ST)*I_SM_ST + U_SM_h;
   S_SM_h = 3*U_SM_h*ComplexMath.conj(I_SM_ST);
   P_airgap = S_SM_h.re;
+    P_Ohmic_Stator=P_SM_ST-P_airgap;
 //excitation
   U_P = Complex(0, 1)*X_h*I_FD_ref;
 //
@@ -283,6 +282,7 @@ equation
   P_FE = (f/50)^1.3*(P_FE_ST_teeth + P_FE_ST_yoke);
 //energy
   der(E_SM_loss) = P_SM_loss;
+  
 annotation(
     __OpenModelica_commandLineOptions = "--matchingAlgorithm=PFPlusExt --indexReductionMethod=dynamicStateSelection -d=initialization,evaluateAllParameters,NLSanalyticJacobian",
     __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
