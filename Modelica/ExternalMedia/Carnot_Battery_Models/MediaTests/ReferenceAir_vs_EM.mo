@@ -68,6 +68,7 @@ model ReferenceAir_vs_EM
     WorkingFluid.ThermodynamicState state_4(p(start=105039), T(start=from_degC(270))) "thermodynamic state of turbine outlet";
     WorkingFluid.SpecificEntropy s_4 "turbine outlet spec. entropy";    
        */
+       EM.BaseProperties air_bp "Medium properties of port_a";
 equation
 //state 3 DISCHARGE
   state_3 = EM.setState_pT(p_3, T_3);
@@ -107,7 +108,11 @@ equation
 /*
   h_4_is_RefA=state_4_is_RefA.h;
     */
+    air_bp.p=101325;
+    air_bp.T=293.15;
   annotation(
     Documentation(info = "<html><head></head><body>Fazit: Reference Air and External Media AIr have the same equations of State</body></html>"),
-    __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
+    __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"),
+  experiment(StartTime = 0, StopTime = 10, Tolerance = 1e-6, Interval = 1),
+  __OpenModelica_commandLineOptions = "--matchingAlgorithm=PFPlusExt --indexReductionMethod=dynamicStateSelection -d=initialization,evaluateAllParameters,NLSanalyticJacobian");
 end ReferenceAir_vs_EM;
