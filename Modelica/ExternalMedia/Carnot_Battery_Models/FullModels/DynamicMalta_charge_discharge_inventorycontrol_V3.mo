@@ -37,7 +37,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
   parameter Integer Mode = 2;
-  /*
+/*
           parameter Real SOC_tank1_start = 0;
           parameter SI.Temperature T_tank1_start = from_degC(565);
           parameter Real SOC_tank2_start = 1;
@@ -46,7 +46,8 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
           parameter SI.Temperature T_tank3_start = from_degC(25.1);
           parameter Real SOC_tank4_start = 0;
           parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-    */
+ */
+
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -55,6 +56,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 1;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
+
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 293.15;
   parameter SI.Temperature T_amb = from_degC(25);
@@ -78,14 +80,16 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   SI.Power P_elec_charge(displayUnit = "MW");
   Real m_dot_div_p_charge(start = 0.0076);
   parameter Real n_CO_charge_start = 3000;
-  parameter SI.Power P_set_charge(displayUnit = "MW") = 190.1*1000*1000;
+  parameter SI.Power P_set_charge(displayUnit = "MW") = 80*1000*1000;
   SI.Energy exergy_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr_charge(displayUnit = "MW");
   SI.Energy E_mech_shaft_charge(displayUnit = "MWh", start = 0, fixed = true);
   parameter Real hot_to_cold_mass_flow_ratio_charge = 2.04307;
   Real COP_system_charge;
   //SI.Energy E_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
-  //Real cycle_mass_proxy(start=1629);
+  Real cycle_mass_proxy_charge(start = 1383); 
+  parameter Real cycle_mass_proxy_nom_charge=1382.8;  
+  Real cycle_mass_ratio_charge(start=1);
   //-------------Discharge//
   //design
   parameter SI.MassFlowRate m_dot_WF_nom = 762 "design mass flow rate";
@@ -101,7 +105,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   SI.HeatFlowRate Q_dot_hightemp_res(displayUnit = "MW");
   Real m_dot_div_p(start = 0.0076);
   parameter Real n_CO_start = 3000;
-  parameter SI.Power P_set(displayUnit = "MW") = -50*1000*1000;
+  parameter SI.Power P_set(displayUnit = "MW") = -80*1000*1000;
   SI.Energy exergy_total_loss_irr(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr(displayUnit = "MW");
   SI.Energy E_mech_shaft(displayUnit = "MWh", start = 0, fixed = true);
@@ -567,10 +571,10 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   parameter Real n_CO = 3000 "actual speed";
   SI.Efficiency eta_is_CO "absolute isentropic efficiency";
   //reduced
-  Real beta_CO_red(start = 0.99) "reduced compression ratio";
-  Real n_CO_red(start = 0.99) "reduced speed";
+  Real beta_CO_red(start = 1) "reduced compression ratio";
+  Real n_CO_red(start = 1) "reduced speed";
   SI.Efficiency eta_is_CO_red "reduced isentropic efficiency";
-  Real G_CO_red(start = 0.99) "reduced mass flow rate compressor";
+  Real G_CO_red(start = 1) "reduced mass flow rate compressor";
   //other
   SI.Power P_mech_CO(displayUnit = "MW");
   SI.Power P_loss_irr_CO(displayUnit = "MW");
@@ -694,7 +698,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   SI.ReactivePower Q_TR_set(displayUnit = "MW", start = -50*1000*1000);
   //------------------TRANSFORMER
   //transformer parameters
-  parameter SI.ApparentPower S_TR_nom(displayUnit = "MVA") = 208*1000*1000;
+  parameter SI.ApparentPower S_TR_nom(displayUnit = "MVA") = 213*1000*1000;
   parameter SI.Voltage U_TR_HV_nom(displayUnit = "kV") = 220*1000 "RMS voltage of the high voltage side (fixed by upper grid), line-to-line";
   parameter SI.Voltage U_TR_LV_nom(displayUnit = "kV") = 15750 "RMS voltage of the low voltage side, line-to-line";
   parameter Real a = U_TR_HV_nom/U_TR_LV_nom "turns ratio";
@@ -828,13 +832,15 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
   //discharge PID
+
   Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 112000, yMin = 38000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01) annotation(
     Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
+
   //charge PID
-  /*
+/*
         Modelica.Blocks.Continuous.LimPID PID_inventory_charge(yMax = 110000, yMin = 40000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01)  annotation(
           Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
-    */
+   */
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -862,17 +868,18 @@ equation
   P_mech_RO=PID_inventory_charge.u_s;
   P_mech_shaft_charge= PID_inventory_charge.u_m;
   p_4_charge=PID_inventory_charge.y; 
-
 */
+
 //When charge PID is turned off, this must be uncommented
   p_4_charge = p_fix_charge;
 //PID discharge
+
   P_mech_RO = PID_inventory.u_s;
   P_mech_shaft = PID_inventory.u_m;
   p_1 = PID_inventory.y;
+
 //When discharge PID is turned off, this mus be uncommented
 // p_1=p_fix;
-//
   P_elec_charge = P_TR_HV;
   P_elec = P_TR_HV;
 //-------------SYSTEM TANKS//
@@ -893,6 +900,8 @@ equation
   der(E_mech_shaft_charge) = P_mech_shaft_charge;
   hot_to_cold_mass_flow_ratio_charge = m_dot_solsalt_HEX1_charge/m_dot_methanol_HEX3_charge;
 // E_total_loss_irr_charge = E_loss_irr_CO_charge + E_loss_irr_TU_charge + E_loss_irr_HEX1_charge + E_loss_irr_HEX2_charge + E_loss_irr_HEX2_charge + E_loss_irr_HEXrej_charge + E_TR_loss + E_SM_loss;
+  cycle_mass_proxy_charge = ((((p_1_charge/(287.047*T_1_charge)) + (p_4_a_charge/(287.047*T_4_a_charge)))/2)*UA_HEX3_nom/100000) + ((((p_4_a_charge/(287.047*T_4_a_charge)) + (p_4_charge/(287.047*T_4_charge)))/2)*UA_HEX2_nom/100000) + ((((p_2_charge/(287.047*T_2_charge)) + (p_3_a_charge/(287.047*T_3_a_charge)))/2)*UA_HEX2_nom/100000) + ((((p_3_charge/(287.047*T_3_charge)) + (p_3_a_charge/(287.047*T_3_a_charge)))/2)*UA_HEX1_nom/100000);
+    cycle_mass_ratio_charge=cycle_mass_proxy_charge/cycle_mass_proxy_nom_charge;
 //-------------SYSTEM DISCHARGE//
   P_mech_shaft = P_mech_CO + P_mech_TU;
   Q_pump = -Q_dot_HEX1;
@@ -1355,7 +1364,7 @@ Re_ratio=Re_inlet_CO/Re_inlet_CO_nom;
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
-  G_TU_red = alpha*sqrt((1/(beta_TU^2) - 1)/(1/(beta_TU_nom^2) - 1));
+  //G_TU_red = alpha*sqrt((1/(beta_TU^2) - 1)/(1/(beta_TU_nom^2) - 1));
   eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
 //other turbine equations
   beta_TU = p_3/p_4;
@@ -1683,12 +1692,18 @@ Re_ratio=Re_inlet_CO/Re_inlet_CO_nom;
     if beta_TU_red_charge < beta_TU_red_charge_min then
       terminate("minimum red pressure ratio  reached");
     end if;
-    if n_CO_red_charge < 0.8 then
+    if n_CO_red_charge < 0.6 then
       terminate("compressor reduced relative speed too low");
     end if;
     if n_CO_red_charge > 1.05 then
       terminate("compressor reduced relative speed too high");
     end if;
+    if cycle_mass_ratio_charge < 0.45 then
+      terminate("cycle mass too low");
+    end if;
+    if cycle_mass_ratio_charge > 1.1 then
+      terminate("cycle mass too high");
+    end if;       
 //electrical machines
     if S_TR_HV_abs > S_TR_nom then
       terminate("maximum transformer apparent power reached");
