@@ -862,8 +862,8 @@ Real G_CO_rel_red_charge(start = 1) "relative reduced mass flow rate compressor"
 //-0.00001
      Modelica.Blocks.Continuous.LimPID PID_low_press(yMax = 500000, yMin = 20000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 5, Ti = 1, wp = 0.9, wd = 0.2, Td = 0.01) annotation(
       Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));    
-*/
-     
+
+     */
 /*
       Modelica.Blocks.Sources.Ramp ramp(height = 20, duration = 901, offset = 0, startTime = 0) annotation(
         Placement(transformation(origin = {78, 76}, extent = {{-10, -10}, {10, 10}})));
@@ -905,7 +905,7 @@ equation
   p_4_charge = PID_low_press_charge.y;
 
 //When charge PID is turned off, this must be uncommented
-//p_4_charge = p_fix_charge;
+ //p_4_charge = p_fix_charge;
  
 //IGV_angle_from_nominal_charge=ramp.y;
 
@@ -918,7 +918,7 @@ equation
  */
  // IGV_angle_from_nominal=ramp.y;
  IGV_angle_from_nominal=0;
-//When discharge PID is turned off, this mus be uncommented
+//When discharge PID is turned off, this must be uncommented
 
 
 /*

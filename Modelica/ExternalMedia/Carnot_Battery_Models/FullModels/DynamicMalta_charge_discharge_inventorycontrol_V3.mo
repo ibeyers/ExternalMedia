@@ -36,8 +36,8 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
                       */
   //--------------------------INPUTS
   //input Integer Mode(start = 1);
-  parameter Integer Mode = 2;
-/*
+  parameter Integer Mode = 1;
+
           parameter Real SOC_tank1_start = 0;
           parameter SI.Temperature T_tank1_start = from_degC(565);
           parameter Real SOC_tank2_start = 1;
@@ -46,8 +46,8 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
           parameter SI.Temperature T_tank3_start = from_degC(25.1);
           parameter Real SOC_tank4_start = 0;
           parameter SI.Temperature T_tank4_start = from_degC(-59.75);
- */
 
+/*
   parameter Real SOC_tank1_start = 1;
   parameter SI.Temperature T_tank1_start = from_degC(565);
   parameter Real SOC_tank2_start = 0;
@@ -56,7 +56,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   parameter SI.Temperature T_tank3_start = from_degC(25.1);
   parameter Real SOC_tank4_start = 1;
   parameter SI.Temperature T_tank4_start = from_degC(-59.75);
-
+*/
   //--------------------------PARAMETERS & VARIABLES SYSTEM-----------------------------//
   parameter SI.Temperature T0 = 293.15;
   parameter SI.Temperature T_amb = from_degC(25);
@@ -80,7 +80,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   SI.Power P_elec_charge(displayUnit = "MW");
   Real m_dot_div_p_charge(start = 0.0076);
   parameter Real n_CO_charge_start = 3000;
-  parameter SI.Power P_set_charge(displayUnit = "MW") = 80*1000*1000;
+  parameter SI.Power P_set_charge(displayUnit = "MW") = 150*1000*1000;
   SI.Energy exergy_total_loss_irr_charge(displayUnit = "MWh", start = 0, fixed = true);
   SI.Power P_total_loss_irr_charge(displayUnit = "MW");
   SI.Energy E_mech_shaft_charge(displayUnit = "MWh", start = 0, fixed = true);
@@ -366,10 +366,11 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   Real beta_CO_red_charge_min;
   Real beta_CO_red_charge_max;
   //Reynolds number at inlet
+  /*
   parameter SI.Area A_inlet_CO_charge=10;
   parameter SI.Diameter D_inlet_CO_charge=sqrt(A_inlet_CO_charge/pi)*2;
   //SI.ReynoldsNumber Re_inlet_CO_charge;
-  
+  */
   //-------------EXPANDER CHARGE//
   parameter Real t = 0.3 "parameter, see Zhang2002";
   Real alpha_charge "factor, see Zhang2002";
@@ -582,6 +583,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   //limits
   Real beta_CO_red_min;
   Real beta_CO_red_max;
+  /*
   //Reynolds number //geometries from GasTurb
   parameter SI.Area A_inlet_CO = 0.93815;
   parameter SI.Length L_inlet_CO = 0.631 "characteristic length";
@@ -589,6 +591,7 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   WorkingFluid.ThermodynamicState state_inlet_CO_nom;
   SI.ReynoldsNumber Re_inlet_CO_nom;  
   Real Re_ratio;
+  */
   //-------------EXPANDER DISCHARGE//
   Real alpha "factor, see Zhang2002";
   //design
@@ -832,15 +835,15 @@ model DynamicMalta_charge_discharge_inventorycontrol_V3
   Modelica.Blocks.Continuous.SecondOrder T4_guess_control(w = 0.5, D = 0.4) annotation(
     Placement(transformation(origin = {-74, -78}, extent = {{-10, -10}, {10, 10}})));
   //discharge PID
-
+/*
   Modelica.Blocks.Continuous.LimPID PID_inventory(yMax = 112000, yMin = 38000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01) annotation(
     Placement(transformation(origin = {-50, 66}, extent = {{-10, -10}, {10, 10}})));
-
+*/
   //charge PID
-/*
+
         Modelica.Blocks.Continuous.LimPID PID_inventory_charge(yMax = 110000, yMin = 40000, initType = Modelica.Blocks.Types.Init.InitialOutput, y_start = 100000, k = 0.01, Ti = 0.1, wp = 0.9, wd = 0.2, Td = 0.01)  annotation(
           Placement(transformation(origin = {36, 70}, extent = {{-10, -10}, {10, 10}})));
-   */
+  
 initial equation
 //--------------------------INITIAL EQUATIONS-----------------------------//
 //control loops
@@ -864,22 +867,21 @@ equation
 //--------------------------EQUATIONS SYSTEM-----------------------------//
   state_amb_air = WorkingFluid.setState_pT(101315, T_amb);
 //PID charge
-/*
+
   P_mech_RO=PID_inventory_charge.u_s;
   P_mech_shaft_charge= PID_inventory_charge.u_m;
   p_4_charge=PID_inventory_charge.y; 
-*/
 
 //When charge PID is turned off, this must be uncommented
-  p_4_charge = p_fix_charge;
+ // p_4_charge = p_fix_charge;
 //PID discharge
-
+/*
   P_mech_RO = PID_inventory.u_s;
   P_mech_shaft = PID_inventory.u_m;
   p_1 = PID_inventory.y;
-
+*/
 //When discharge PID is turned off, this mus be uncommented
-// p_1=p_fix;
+  p_1=p_fix;
   P_elec_charge = P_TR_HV;
   P_elec = P_TR_HV;
 //-------------SYSTEM TANKS//
@@ -1351,10 +1353,12 @@ equation
 //limits
   beta_CO_red_min = 0.44008400621740806*(G_CO_red)^2 + 0.15193846169229142*G_CO_red + 0.1260521481189032;
   beta_CO_red_max = -0.3505543472709579*(G_CO_red)^2 + 1.6961020320713247*G_CO_red - 0.17150246895420682;
+  /*
 Re_inlet_CO= (state_1.d*L_inlet_CO*(m_dot_WF/(state_1.d*A_inlet_CO)))/state_1.eta;
 state_inlet_CO_nom=WorkingFluid.setState_pT(p_1_nom,T_1_nom);
 Re_inlet_CO_nom = (state_inlet_CO_nom.d*L_inlet_CO*(m_dot_WF_nom/(state_inlet_CO_nom.d*A_inlet_CO)))/state_inlet_CO_nom.eta ;  
 Re_ratio=Re_inlet_CO/Re_inlet_CO_nom;
+*/
 //-------------EXPANDER DISCHARGE//
   n_TU = n_CO;
 //parameters
@@ -1364,7 +1368,7 @@ Re_ratio=Re_inlet_CO/Re_inlet_CO_nom;
   n_TU_red = n_TU/sqrt(T_3_guess)/(n_TU_nom/sqrt(T_3_nom));
   beta_TU_red = beta_TU/beta_TU_nom;
   G_TU_red = m_dot_WF*sqrt(T_3_guess)/p_3/(m_dot_WF_nom*sqrt(T_3_nom)/p_3_nom);
-  //G_TU_red = alpha*sqrt((1/(beta_TU^2) - 1)/(1/(beta_TU_nom^2) - 1));
+  G_TU_red = alpha*sqrt((1/(beta_TU^2) - 1)/(1/(beta_TU_nom^2) - 1));
   eta_is_TU_red = (1 - t*(1 - n_TU_red)^2)*(n_TU_red/G_TU_red)*(2 - ((n_TU_red/G_TU_red)));
 //other turbine equations
   beta_TU = p_3/p_4;
@@ -1775,7 +1779,7 @@ Re_ratio=Re_inlet_CO/Re_inlet_CO_nom;
   end if;
   annotation(
     Documentation(info = "<html><head></head><body>Dynamic Malta Charge &amp; discharge<div>Variable speed</div><div>Heat loss enabled</div><div>turbomachinery updated with limits</div></body></html>"),
-    experiment(StartTime = 0, StopTime = 400, Tolerance = 1e-06, Interval = 10),
+    experiment(StartTime = 0, StopTime = 50000, Tolerance = 1e-06, Interval = 10),
     __OpenModelica_commandLineOptions = "--matchingAlgorithm=PFPlusExt --indexReductionMethod=dynamicStateSelection -d=initialization,evaluateAllParameters,NLSanalyticJacobian",
     __OpenModelica_simulationFlags(lv = "LOG_STDOUT,LOG_ASSERT,LOG_STATS", s = "dassl", variableFilter = ".*"));
 end DynamicMalta_charge_discharge_inventorycontrol_V3;
